@@ -41,7 +41,7 @@ Frameworks mapped: Cyber Essentials, ISO 27001 and GDPR (`judged audit --framewo
 | `upd-14-days` | pending OS and Flatpak updates, dependency and container image vulnerabilities, image age, CISA known-exploited, waivers. None of them counts the 14 days yet |
 | `acc-guessing` | SSH server lets people in with passwords |
 | `acc-privileges` | extra uid 0 accounts, sudo rules without a password |
-| the other 24 | none: a statement only |
+| the other 25 | none: a statement only |
 
 No malware requirement has a check: for the Linux machines judged reads, NCSC lists application allow listing, not anti-malware software, so a ClamAV result is not Cyber Essentials evidence. Backups, disk encryption, logging, website TLS and secrets in repos are not requirements there and name none. The ISO 27001 and GDPR lists are typed from memory. A control list is marked
 unreviewed: this is evidence, not a certification.
