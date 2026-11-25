@@ -90,7 +90,7 @@ For your own firm, `notebooks/costs.ipynb` adds up past misses that a judged che
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-409 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
+411 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
 `tests/e2e/` builds a clean Debian container with Python 3.13 and a local ACME test server (needs podman or docker).
 A few tests read schema data from `$JUDGED_TEST_DATA` and skip when it is missing.
 

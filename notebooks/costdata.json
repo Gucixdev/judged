@@ -11,6 +11,22 @@
     "all_answers": {"all businesses": [0, 200, 1500, 4000], "micro and small": [0, 190, 1140, 4000], "medium and large": [30, 500, 2330, 10000]},
     "only_above_zero": {"all businesses": [200, 1000, 4800, 10000], "micro and small": [200, 1000, 4150, 8300], "medium and large": [300, 1620, 7300, 28200]}
   },
+  "why": {
+    "percent": 92,
+    "headline": "Organisations with Cyber Essentials certification are 92% less likely to make a cyber insurance claim than those without it.",
+    "caveat": "This is about the certificate, not about judged: judged does not certify you and nobody has measured its effect on claims. The data is from the provider of the scheme's free insurance; it compares two groups and does not show that the certificate alone makes the difference.",
+    "source": "UK National Cyber Security Centre, A decade of Cyber Essentials",
+    "url": "https://www.ncsc.gov.uk/blog-post/cyber-essentials-decade",
+    "quote": "92% less likely to make a cyber insurance claim",
+    "points": [
+      "Collects machine evidence in all five Cyber Essentials areas: firewalls, secure configuration, user access, malware protection, updates. Linux only; its control list is not yet reviewed against the scheme.",
+      "What it could not check is never shown as passed: no permission or a missing tool is unknown, a control without machine evidence is manual.",
+      "The checks read and report; they never repair, delete or restore. Renewal, if you turn it on, runs your own ACME client.",
+      "One expiry list: certificates, keys, domains, licences and contracts with a notice period.",
+      "Secret values are never printed, only the name and file:line.",
+      "Free: MIT licence, Python, one optional dependency for notifications."
+    ]
+  },
   "figures": [
     {"id": "breach-global", "label": "Data breach, global average", "low": 4440000, "high": 4440000, "currency": "USD", "period": "incident", "kind": "published",
      "source": "IBM Cost of a Data Breach 2025", "url": "https://www.ibm.com/think/x-force/2025-cost-of-a-data-breach-navigating-ai", "quote": "4.44 million"},

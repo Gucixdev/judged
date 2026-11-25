@@ -4,6 +4,8 @@ from pathlib import Path
 
 import pytest
 
+from judged import controls
+
 NB = Path(__file__).resolve().parent.parent / "notebooks"
 
 
@@ -81,6 +83,18 @@ def test_the_chart_slices_make_one_whole(monkeypatch):
     slices = offline(monkeypatch)["survey_slices"]()
     assert [round(s[1], 2) for s in slices] == [57, 32.25, 6.45, 2.15, 2.15] and sum(s[1] for s in slices) == pytest.approx(100)
     assert "GBP 4,000" in slices[-1][0]
+
+
+def test_why_judged_says_whose_the_percentage_is(monkeypatch, capsys):
+    why = offline(monkeypatch)["WHY"]
+    assert f"{why['percent']}%" in why["headline"] and "Cyber Essentials certification" in why["headline"] and "judged" not in why["headline"]
+    assert "not about judged" in why["caveat"] and why["quote"].startswith(f"{why['percent']}%")
+    assert why["caveat"].split()[0] in capsys.readouterr().out
+
+
+def test_why_judged_five_areas_are_really_mapped_in_the_code():
+    mapped = {c for name in dir(controls) if name.startswith("M_") for c in getattr(controls, name).get("ce", [])}
+    assert {"firewalls", "secure-config", "user-access", "malware", "updates"} <= mapped
 
 
 def test_notebook_is_valid_and_has_no_stored_output():
