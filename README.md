@@ -50,6 +50,8 @@ A control with no machine evidence is shown as `manual`, never as passed. Exit c
 - **Web:** certificate, headers, mail authentication (SPF, DMARC), page images that are not WebP.
 - **AI agents:** Claude Code permission settings, MCP server configs, hidden characters in instruction files, provider keys
   left in plain text.
+- **Public lists:** CISA known-exploited CVEs (a vulnerable dependency on it is a fail), downloaded as a plain GET, cached as JSON.
+- **Code standards:** MISRA C, CERT C, shellcheck on your repos, off by default; a miss is a warning.
 - **Obligations:** GDPR and other deadlines from a catalog you can edit.
 
 Every plug-in is one file in a folder that is found automatically (`areas/`, `hardening/`, `agentchecks/`, `sbom/`,
@@ -69,22 +71,29 @@ One file, one line per thing: `directive args key=value`. A typo is an error wit
 be stated (`judged config check` lists the missing ones), so nothing is implied. `judged.example.conf` shows all of them.
 Notification URLs hold tokens: keep them in `~/.config/judged/notify` (mode 600) or `JUDGED_NOTIFY`, never in the repo.
 
+## What it can save
+
+There is no measured saving (judged has no customer data); this is arithmetic on published figures ([docs/costs.md](docs/costs.md), and `notebooks/costs.ipynb` to type your own numbers),
+to be replaced with your own. A certificate that expires unnoticed and takes 4 hours to fix costs a small firm USD 33,000 to 102,000
+(USD 137 to 427 a minute, Ponemon). A contract that renews by a missed notice date costs one full term. A dependency on the CISA
+list is the kind of hole behind Equifax (USD 1.38 billion settlement). Expected saving is the yearly chance of a miss times the cost: one
+such outage in ten years is USD 3,300 a year, against EUR 0 for the tool and an afternoon of setup.
 ## Tests
 
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-362 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
+398 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
 `tests/e2e/` builds a clean Debian container with Python 3.13 and a local ACME test server (needs podman or docker).
 A few tests read schema data from `$JUDGED_TEST_DATA` and skip when it is missing.
 
 ## Limits
 
-Linux only for the host audits; BSD and macOS are untested. Fake output stands in for tools that were not installed on the
+The host audits are Linux only; Windows and macOS are not covered yet (planned, see todo), BSD is untested. Fake output stands in for tools that were not installed on the
 development machine (restic, borg, dinit, OpenRC, runit, xbps, apt, dnf, rootful Docker), so those paths are checked against
 documented formats, not real runs. The control catalog is typed from memory and marked unreviewed: this is evidence, not
 certification. Scanning this repository reports its own test fixtures; that is expected.
 
-Open work: [docs/todo.md](docs/todo.md). Finished work and how each piece was checked: [docs/done.md](docs/done.md).
+What a miss costs, with numbers and sources: [docs/costs.md](docs/costs.md). Open work: [docs/todo.md](docs/todo.md). Finished work and how each piece was checked: [docs/done.md](docs/done.md).
 
 Licence: MIT, see `LICENSE`.

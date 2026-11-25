@@ -79,7 +79,7 @@ def fixed_hint(rec: dict, eco: str, name: str, installed: str) -> str | None:
     return above[0] if above else None
 
 
-def details(hit: dict, get, limit: int = 40) -> dict:
+def details(hit: dict, get, limit: int = 40, aliases: dict | None = None) -> dict:
     """{(eco, name, ver): [(id, label, score, fixed)]} for the first `limit` distinct ids; an id that cannot be fetched is UNRATED with no fix."""
     cache, out = {}, {}
     for pkg, ids in hit.items():
@@ -97,6 +97,8 @@ def details(hit: dict, get, limit: int = 40) -> dict:
             if not isinstance(rec, dict) or "id" not in rec and "severity" not in rec and "affected" not in rec:
                 rows.append((i, "UNRATED", None, None))
                 continue
+            if aliases is not None:
+                aliases[i] = {x for x in [rec.get("id", i), *(rec.get("aliases") or [])] if str(x).startswith("CVE-")}
             lab, score = severity(rec)
             rows.append((i, lab, score, fixed_hint(rec, *pkg)))
         out[pkg] = rows

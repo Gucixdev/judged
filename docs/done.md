@@ -4,7 +4,7 @@
 
 | Done | Not done |
 |---|---|
-| expiry tracker with once-per-band alerts; audit engine, 3 frameworks, host/TLS/GPG/SPF/DMARC checks; renewal supervisor verified end to end against a local TLS server; obligations calendar; 362 unit tests; `./e2e` runs a clean Debian + Python 3.13 container with no network: real TLS server, Pebble ACME, certbot, GPG, leaky repo, 25 claims, Lean proofs for bands and renewal window, AMPL optimum for the window; SPF/DMARC, site, domain expiry and Cargo dependency audit run live | real CA issuance (only Pebble); real notification delivery; everything unchecked under TODO |
+| expiry tracker with once-per-band alerts; audit engine, 3 frameworks, host/TLS/GPG/SPF/DMARC checks; renewal supervisor verified end to end against a local TLS server; obligations calendar; 398 unit tests; `./e2e` runs a clean Debian + Python 3.13 container with no network: real TLS server, Pebble ACME, certbot, GPG, leaky repo, 25 claims, Lean proofs for bands and renewal window, AMPL optimum for the window; SPF/DMARC, site, domain expiry and Cargo dependency audit run live | real CA issuance (only Pebble); real notification delivery; everything unchecked under TODO |
 
 ## Done
 
@@ -55,6 +55,12 @@ Finished and checked, newest groups last. Each line says how it was checked.
 
 **Delivery and platforms**
 - [x] Your own rules without code: `check "name" cmd=... maps=ce:x,iso27001:A.8.13` in `judged.conf` or in a file pulled in by `include rules/*.rules`; exit 0 pass, 1 fail, 2 warn, else unknown
+
+**Feeds, code standards, costs (2026-11-25)**
+- Public lists cached as JSON (`judged/feeds/`, area `feeds`): CISA known-exploited CVEs; fresh, stale (warn) and none (unknown) states, atomic cache write, 30 MB limit, offline option. Tests use an injected fetch, no network.
+- `deps.<name>.exploited`: a vulnerable dependency whose CVE (own id or alias) is on the CISA list is a fail, waived ones included (a waiver never hides it). Tested with fakes; not run against the live list in the suite.
+- Code standards (`judged/codestd/`, area `codestd`, off by default): CERT C (clang-tidy) and shellcheck were run for real on a sample; MISRA C through cppcheck is only tested with fake output, cppcheck is not installed here. A miss is a warning.
+- `docs/costs.md` (sourced figures, read from search results, not the full reports) and `notebooks/costs.ipynb` (exchange rates from the ECB, source check, your own numbers; code cells run offline in the tests, not yet opened in a real Jupyter).
 
 **Audit core (2026-11-24)**
 - [x] Malware scan with ClamAV (`malware` section): detection = fail with file and signature, nothing scanned = unknown, old signatures = warn; real EICAR run, 6 mutations caught

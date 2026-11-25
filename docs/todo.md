@@ -2,6 +2,8 @@
 
 Open work only, in the order it will be done. When something is finished it is not ticked here: it moves to [done.md](done.md). Anything typed from memory stays UNVERIFIED until checked against the official text.
 
+What each item costs when missed, and the order by money: [costs.md](costs.md). Online public lists (CISA KEV, EPSS, endoflife.date, SPDX licences, Certificate Transparency) cached as JSON under `<state>/feeds/`: first one (KEV) is written, wiring into deps and the rest are below.
+
 **Expiry and renewal**
 - [ ] Built-in ACME backend through the `acme` library (RFC 8555, HTTP-01 and DNS-01); Pebble is already in `./e2e`, so only the code is missing
 - [ ] DNSSEC chain validation and DS/DNSKEY expiry (RRSIG validity)
@@ -64,10 +66,43 @@ Open work only, in the order it will be done. When something is finished it is n
 - [ ] Malware: rkhunter (its log is root-only here, so judged would read it as root), a second engine (YARA rules), scan of containers and Flatpak data folders, scheduling and a daily summary
 - [ ] DKIM (needs selectors), MTA-STS, TLS-RPT, BIMI; SPF lookup-count limit
 
+**Online feeds** (plain GET of public lists, nothing about you is sent; cached JSON, stale cache used with a warning when offline)
+- [ ] Wire KEV into `deps.project` and `areas/software.py`: `deps.<name>.exploited` fails when a vulnerable package's CVE is in KEV
+- [ ] EPSS scores (exploit probability) next to CVSS
+- [ ] endoflife.date: product and version past or near end of life, for the OS, runtimes and containers found on the host
+- [ ] SPDX licence list: licence ids and OSI/deprecated flags instead of the hand-typed table
+- [ ] Certificate Transparency (crt.sh): certificates issued for your domains that you did not request; new subdomains
+- [ ] Tests for the feeds package (injected fetch: fresh, stale, none, corrupt cache, atomic write, 30 MB limit) and mutation run
+
+**Windows and macOS** (most staff machines at a company run these, so this is high priority)
+- [ ] Find out what already works off Linux: expiry (certificates, domains, contracts), web checks, secrets and e-mail scan, dependency and licence audit, notifications are plain Python and should run; list what breaks (paths such as `/proc`, `/etc`, `~/.config`, file modes, `which`)
+- [ ] An `Env` for each OS so the hardening plug-ins stay one file each and tests keep using fakes
+- [ ] Windows checks, read-only through PowerShell: Defender state and signature age (`Get-MpComputerStatus`), firewall profiles (`Get-NetFirewallProfile`), BitLocker (`manage-bde -status`), Windows Update pending and last install, SMBv1 off, local administrators, RDP enabled and NLA, guest account, PowerShell logging, end-of-life Windows build (Windows 10 support ended 2025-10-14, extended updates cost per device, see docs/costs.md)
+- [ ] macOS checks: FileVault (`fdesetup status`), firewall (`socketfilterfw --getglobalstate`), Gatekeeper (`spctl --status`), SIP (`csrutil status`), pending updates (`softwareupdate -l`), supported macOS version, XProtect age, remote login
+- [ ] Windows and macOS config paths for the AI-agent audit (Claude Desktop, Cursor, VS Code MCP files)
+- [ ] Cannot be verified on the development machine (Linux only): fakes with documented command output first, then a real run by someone with the machine, marked as such in done.md
+
+**Notebook** (Jupyter; optional, nothing in judged depends on it)
+- [ ] `notebooks/costs.ipynb` is written and its code runs offline in the tests; not yet opened in a real Jupyter (not installed on the development machine)
+- [ ] `notebooks/audit.ipynb`: read `judged audit --json` and show status per control with filters
+- [ ] A static `costs.html` twin that opens from a file manager without Jupyter (needs rates typed in or a CORS-enabled rate API; decide)
+
+**Code standards** (first three are written in `judged/codestd/`: MISRA C through cppcheck, CERT C through clang-tidy, shellcheck; a miss is always a warning; there will be far more standards than these, so each stays one file in that folder). Names and numbers below are typed from memory: UNVERIFIED until checked against the owner's text.
+- [ ] Verify the MISRA path on a machine with cppcheck (not installed here): `--addon` JSON with `--rule-texts`, rule ids `misra-c2012-N.N`; MISRA C:2023 and MISRA C++:2023 ids
+- [ ] **C**: ISO/IEC 9899 conformance (`-std=c89|c99|c11|c17 -pedantic-errors`, what people call ANSI C is C89/C90, ANSI X3.159-1989 adopted as ISO/IEC 9899:1990), ISO/IEC TS 17961 (secure C), CWE Top 25 patterns, compiler warnings as a standard (`-Wall -Wextra -Wconversion`), sanitizer build result as evidence
+- [ ] **C++**: MISRA C++:2023, AUTOSAR C++14, SEI CERT C++, C++ Core Guidelines (clang-tidy `cppcoreguidelines-*`), ISO C++ conformance flags
+- [ ] **Python**: PEP 8 and PEP 257 (ruff or flake8), PEP 484 typing (mypy or pyright strict), bandit (security), pylint; **JS/TS**: ESLint, `tsc --strict`; **Rust**: clippy, `cargo audit` and `cargo deny`, count of `unsafe`; **Go**: `go vet`, staticcheck, gosec; **Java**: SEI CERT Java, SpotBugs; **Shell**: POSIX sh conformance (checkbashisms); **Dockerfile**: hadolint; **SQL**, **Terraform and other infrastructure code**: tflint, checkov
+- [ ] **General rules, not tied to a language**: function length, nesting depth, cyclomatic complexity, file size, duplicated blocks, commented-out code, TODO age, public functions without a doc comment. Design principles (composition over inheritance, YAGNI, DRY, abstraction level) are judgement, so only measurable proxies are checked and every one is a warning the team can answer
+- [ ] **Profiles**: a standard set per language and a global one, as plain files (`standards/*.rules`) the team edits; a rule can be switched off for the whole tree, for one language or for one folder, and the switch is listed in the report (nothing is hidden)
+- [ ] **Deviations**: a rule broken on purpose is recorded like a waiver (rule, place, reason, owner, expiry), as MISRA asks for formal deviations; expired ones count again
+- [ ] **Baseline** for an old code base: findings that existed at the start are shown as their own count next to the new ones, never dropped
+- [ ] **Safety and quality standards that require a coding standard** (evidence mapping only): ISO 26262 (road vehicles), IEC 61508 (functional safety), IEC 62304 (medical device software), DO-178C (airborne), ISO/IEC 25010 and ISO/IEC 5055 (source code quality measures), ISO/IEC 27034 and OWASP ASVS (application security), NIST SP 800-218 SSDF, SLSA, OpenSSF Scorecard
+- [ ] Rule texts: MISRA is a paid document (never shipped, user points at their copy); CERT and C++ Core Guidelines are free to read; record the licence of each rule source in its file header
+
 **Delivery and platforms**
 - [ ] A real notification delivery test through any channel (needs a URL in `~/.config/judged/notify`, mode 600)
 - [ ] Let `judged.conf` add or override controls and duties (the parser reads `framework`, `control`, `duty` lines and `include rules/*.rules` works; the merge with the shipped catalog is covered for `control` only, `duty` and `framework` overrides are not tested)
-- [ ] Hosts other than Linux with pacman (apt, dnf, BSD, macOS, Windows); BSD and macOS are untested
+- [ ] Other Linux package managers and BSD (apt, dnf are written against documented formats; BSD untested)
 - [ ] Put the code in a git repo and push (not done, waiting for the go-ahead)
 
 

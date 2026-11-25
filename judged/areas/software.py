@@ -17,5 +17,5 @@ def run(cfg, ctx):
     for pat in dp.get("projects", []):
         for r in sorted(glob.glob(str(Path(pat).expanduser()))):
             if Path(r).is_dir():
-                out += deps.project(r, dp.get("deny") or lc.get("deny", []), dp.get("max_lookups", 300), waived=waived, today=ctx.today, seen=seen)
+                out += deps.project(r, dp.get("deny") or lc.get("deny", []), dp.get("max_lookups", 300), waived=waived, today=ctx.today, seen=seen, kev=ctx.shared.get("feeds", {}).get("kev"))
     return out + waivers.summary(waived, ctx.today, seen)

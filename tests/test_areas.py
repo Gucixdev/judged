@@ -55,5 +55,5 @@ def test_a_crashing_area_becomes_one_unknown_and_the_rest_still_run(drop):
 
 def test_file_without_run_is_not_an_area_and_every_builtin_is_found():
     names = [m.__name__.rsplit(".", 1)[-1] for m in areas.discover()]
-    assert names[0] == "host" and "malware_area" in names and "software" in names and names == sorted(names, key=lambda n: [m.ORDER for m in areas.discover() if m.__name__.endswith("." + n)][0])
+    assert names[:2] == ["feeds_area", "host"] and "codestd_area" in names and "malware_area" in names and "software" in names and names == sorted(names, key=lambda n: [m.ORDER for m in areas.discover() if m.__name__.endswith("." + n)][0])
     assert all(hasattr(m, "NAME") and hasattr(m, "ORDER") for m in areas.discover())

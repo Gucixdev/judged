@@ -1,0 +1,32 @@
+{
+  "checked": "2026-11-25",
+  "note": "Published figures. `quote` is the exact text that must still be on the source page; `judged costs --check` downloads the page and tells you when it is gone (the figure may have changed). kind: published = a survey or law, vendor = said by someone who sells the fix, computed = arithmetic on a published figure.",
+  "figures": [
+    {"id": "breach-global", "label": "Data breach, global average", "low": 4440000, "high": 4440000, "currency": "USD", "period": "incident", "kind": "published",
+     "source": "IBM Cost of a Data Breach 2025", "url": "https://www.ibm.com/think/x-force/2025-cost-of-a-data-breach-navigating-ai", "quote": "4.44 million"},
+    {"id": "breach-us", "label": "Data breach, United States", "low": 10220000, "high": 10220000, "currency": "USD", "period": "incident", "kind": "published",
+     "source": "IBM Cost of a Data Breach 2025", "url": "https://www.securityweek.com/cost-of-data-breach-in-us-rises-to-10-22-million-says-latest-ibm-report/", "quote": "10.22 million"},
+    {"id": "shadow-ai", "label": "Extra breach cost with a lot of shadow AI", "low": 670000, "high": 670000, "currency": "USD", "period": "incident", "kind": "published",
+     "source": "IBM Cost of a Data Breach 2025", "url": "https://newsroom.ibm.com/2025-07-30-ibm-report-13-of-organizations-reported-breaches-of-ai-models-or-applications,-97-of-which-reported-lacking-proper-ai-access-controls", "quote": "670,000"},
+    {"id": "ransom-recovery", "label": "Ransomware recovery, without the ransom (mean)", "low": 1530000, "high": 1530000, "currency": "USD", "period": "incident", "kind": "published",
+     "source": "Sophos State of Ransomware 2025", "url": "https://www.sophos.com/en-us/press/press-releases/2025/06/nearly-half-companies-opt-pay-ransom-sophos-report-finds", "quote": "1.53 million"},
+    {"id": "downtime-small", "label": "Downtime of a small business", "low": 137, "high": 427, "currency": "USD", "period": "minute", "kind": "published",
+     "source": "Ponemon, quoted by Atlassian", "url": "https://www.atlassian.com/incident-management/kpis/cost-of-downtime", "quote": "427"},
+    {"id": "win10-esu-1", "label": "Windows 10 extended updates, year 1", "low": 61, "high": 61, "currency": "USD", "period": "device-year", "kind": "published",
+     "source": "Microsoft, reported by Petri", "url": "https://petri.com/windows-10-extended-security-updates-price/", "quote": "$61"},
+    {"id": "win10-esu-3", "label": "Windows 10 extended updates, year 3", "low": 244, "high": 244, "currency": "USD", "period": "device-year", "kind": "published",
+     "source": "Microsoft, reported by Petri", "url": "https://petri.com/windows-10-extended-security-updates-price/", "quote": "$244"},
+    {"id": "gdpr-top", "label": "GDPR fine ceiling, serious tier (or 4% of turnover if higher)", "low": 20000000, "high": 20000000, "currency": "EUR", "period": "decision", "kind": "published",
+     "source": "GDPR Article 83", "url": "https://gdpr-info.eu/art-83-gdpr/", "quote": "20 000 000 EUR"},
+    {"id": "nis2-essential", "label": "NIS2 fine ceiling, essential entities (or 2% of turnover if higher)", "low": 10000000, "high": 10000000, "currency": "EUR", "period": "decision", "kind": "published",
+     "source": "NIS2 summary by Mofo", "url": "https://www.mofo.com/resources/insights/250708-ns-2-strengthening-europes-cyber-defenses", "quote": "10 million"},
+    {"id": "cyber-insurance", "label": "Cyber insurance, USD 1 million policy, small firm", "low": 1000, "high": 3000, "currency": "USD", "period": "year", "kind": "vendor",
+     "source": "Insureon, broker", "url": "https://www.insureon.com/small-business-insurance/cyber-liability/cost", "quote": ""},
+    {"id": "cyber-essentials-plus", "label": "Cyber Essentials Plus audit, 1 to 49 users", "low": 1350, "high": 1600, "currency": "GBP", "period": "year", "kind": "vendor",
+     "source": "Forensic Control, certification body", "url": "https://forensiccontrol.com/guides/how-much-does-cyber-essentials-plus-cost/", "quote": ""},
+    {"id": "iso27001-surveillance", "label": "ISO 27001 yearly surveillance audit", "low": 3000, "high": 10000, "currency": "USD", "period": "year", "kind": "vendor",
+     "source": "Drata, compliance software", "url": "https://drata.com/blog/iso-27001-certification-cost", "quote": ""},
+    {"id": "bec-report", "label": "Business e-mail compromise, per FBI report (2.77 bn / 21,442)", "low": 129000, "high": 129000, "currency": "USD", "period": "incident", "kind": "computed",
+     "source": "FBI IC3 2024", "url": "https://www.infosecurity-magazine.com/news/fbi-staggering-lost-cybercrime-2024/", "quote": ""}
+  ]
+}

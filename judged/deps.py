@@ -52,8 +52,27 @@ def _vuln_line(pkg, ids, worst) -> str:
     return f"{n} {v} ({i} {lab.lower()}{f' {score}' if score is not None else ''}{more}; " + (f"fixed in {fixed}, loose version order" if fixed else "no fixed version listed above yours") + ")"
 
 
+def exploited(name: str, hit: dict, aliases: dict, kev: dict | None, limit: int) -> Result:
+    """Which vulnerable packages have a CVE on the CISA list of vulnerabilities attackers already use. Certain, so it is a fail."""
+    rid, title = f"deps.{name}.exploited", f"{name} actively exploited vulnerabilities"
+    if kev is None:
+        return Result(rid, title, "unknown", "CISA known-exploited list not available (feeds area off, offline or no cache)", M_UPDATES)
+    rows = []
+    for pkg in sorted(hit):
+        for vid in hit[pkg]:
+            for cve in sorted({vid} | aliases.get(vid, set())):
+                if cve in kev:
+                    rows.append(f"{pkg[1]} {pkg[2]}: {cve} (added {kev[cve][0]}, fix due {kev[cve][1]}" + (", used in ransomware" if str(kev[cve][2]).lower() == "known" else "") + ")")
+    rows = sorted(set(rows))
+    cut = sum(len(v) for v in hit.values()) > limit
+    note = f"; ids beyond the first {limit} were matched by their own CVE id only" if cut else ""
+    if rows:
+        return Result(rid, title, "fail", f"{len(rows)} on the CISA list: " + "; ".join(rows[:5]) + (f"; (+{len(rows) - 5} more)" if len(rows) > 5 else "") + note, M_UPDATES)
+    return Result(rid, title, "pass", "none of the open vulnerabilities is on the CISA known-exploited list" + note, M_UPDATES)
+
+
 def project(root: str, deny: list, max_lookups: int = 300, post=post_json, get=get_json, waived: list | None = None, max_vuln_details: int = 40,
-            today: date | None = None, seen: set | None = None) -> list:
+            today: date | None = None, seen: set | None = None, kev: dict | None = None) -> list:
     name = Path(root).expanduser().name
     files = lockfiles.find(root)
     if not files:
@@ -70,9 +89,15 @@ def project(root: str, deny: list, max_lookups: int = 300, post=post_json, get=g
                   "; ".join(errs) if errs else f"{len(files)} lockfiles, {len(pkgs)} registry packages", M_UPDATES)]
     try:
         hit, accepted = vulns(pkgs, post), []
+        every = {p: list(v) for p, v in hit.items()}
         if waived:
             hit, accepted = waiv.apply(hit, waiv.split(waived, today or date.today())[0], today or date.today(), seen)
-        info = vulninfo.details(hit, get, max_vuln_details)
+        aliases = {}
+        info = vulninfo.details(hit, get, max_vuln_details, aliases)
+        waived_only = {p: [i for i in ids if i not in hit.get(p, [])] for p, ids in every.items()}
+        waived_only = {p: ids for p, ids in waived_only.items() if ids}
+        if waived_only and kev is not None:
+            vulninfo.details(waived_only, get, max_vuln_details, aliases)
         rank = {"CRITICAL": 4, "HIGH": 3, "MEDIUM": 2, "LOW": 1}
         worst = {p: max(rows, key=lambda r: rank.get(r[1], 0)) for p, rows in info.items()}
         order = sorted(hit, key=lambda p: -rank.get(worst[p][1], 0))
@@ -82,6 +107,7 @@ def project(root: str, deny: list, max_lookups: int = 300, post=post_json, get=g
         cut = [f"severity looked up for the first {max_vuln_details} ids only"] if sum(len(v) for v in hit.values()) > max_vuln_details else []
         out.append(Result(f"deps.{name}.vulns", f"{name} known vulnerabilities", "fail" if bad else "warn" if hit else "pass",
                           (f"{len(hit)} of {len(pkgs)} packages ({len(bad)} high or critical): {ev}" + "".join("; " + c for c in cut) if hit else f"none open in {len(pkgs)} packages (OSV)") + note, M_UPDATES))
+        out.append(exploited(name, every, aliases, kev, max_vuln_details))
     except OSError as e:
         out.append(Result(f"deps.{name}.vulns", f"{name} known vulnerabilities", "unknown", f"OSV not reachable: {e}", M_UPDATES))
     by, denied, skipped = {}, [], 0
