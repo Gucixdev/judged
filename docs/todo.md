@@ -98,6 +98,8 @@ What each item costs when missed, and the order by money: [costs.md](costs.md). 
 - [ ] **Baseline** for an old code base: findings that existed at the start are shown as their own count next to the new ones, never dropped
 - [ ] **Safety and quality standards that require a coding standard** (evidence mapping only): ISO 26262 (road vehicles), IEC 61508 (functional safety), IEC 62304 (medical device software), DO-178C (airborne), ISO/IEC 25010 and ISO/IEC 5055 (source code quality measures), ISO/IEC 27034 and OWASP ASVS (application security), NIST SP 800-218 SSDF, SLSA, OpenSSF Scorecard
 - [ ] Rule texts: MISRA is a paid document (never shipped, user points at their copy); CERT and C++ Core Guidelines are free to read; record the licence of each rule source in its file header
+rust go python php java javascript typescript im wiecej jezykow pokryc tym lepiej 
+
 
 **Delivery and platforms**
 - [ ] A real notification delivery test through any channel (needs a URL in `~/.config/judged/notify`, mode 600)

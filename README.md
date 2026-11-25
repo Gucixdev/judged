@@ -56,7 +56,7 @@ A control with no machine evidence is shown as `manual`, never as passed. Exit c
 
 Every plug-in is one file in a folder that is found automatically (`areas/`, `hardening/`, `agentchecks/`, `sbom/`,
 `pkgmgrs/`, `inits/`, `renewers/`, `backups/`); a plug-in that crashes becomes one `unknown` result and the rest still run.
-Every check and option: [docs/reference.md](docs/reference.md).
+Everything covered today with every option: [docs/coverage.md](docs/coverage.md); the long explanation of each check: [docs/reference.md](docs/reference.md).
 
 ## Findings: fail, warn, unknown
 
@@ -83,7 +83,7 @@ such outage in ten years is USD 3,300 a year, against EUR 0 for the tool and an 
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-398 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
+401 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
 `tests/e2e/` builds a clean Debian container with Python 3.13 and a local ACME test server (needs podman or docker).
 A few tests read schema data from `$JUDGED_TEST_DATA` and skip when it is missing.
 
