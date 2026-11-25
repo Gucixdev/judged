@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Computes the costs notebook (chart, tables, out/costs.pdf) and opens it in the browser through Jupyter. No arguments.
+# Computes the costs notebook (the slides, out/costs.pdf) and opens it in the browser through Jupyter. No arguments.
 # NO_BROWSER=1: compute only.
 # Jupyter is not a dependency of judged: install it once with
 #   python3 -m venv "$H" && "$H/bin/pip" install notebook nbconvert matplotlib

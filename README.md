@@ -82,15 +82,17 @@ the median cost was GBP 0, 95% said GBP 4,000 or less, and for medium and large 
 The survey publishes no average, so the rare very large cases do not show in these numbers. These are costs of
 breaches, not savings from a tool.
 
-For your own firm, `notebooks/costs.ipynb` adds up past misses that a judged check watches, each with its proof
-(invoice, ticket, contract). Without records it shows no number. Published prices with sources: [docs/costs.md](docs/costs.md).
+`notebooks/run` builds a short 16:9 presentation (`notebooks/out/costs.pdf`): what judged does, one chart of what a single
+miss costs in areas it watches, what Cyber Essentials certification brings, why judged, straight answers and sources.
+It also adds up your own past misses, each with its proof (invoice, ticket, contract); without records it shows no figure
+of yours. Published prices with sources: [docs/costs.md](docs/costs.md).
 
 ## Tests
 
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-411 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
+412 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
 `tests/e2e/` builds a clean Debian container with Python 3.13 and a local ACME test server (needs podman or docker).
 A few tests read schema data from `$JUDGED_TEST_DATA` and skip when it is missing.
 

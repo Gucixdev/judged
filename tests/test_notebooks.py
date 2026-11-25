@@ -27,11 +27,15 @@ def report_dir(tmp_path, monkeypatch):
     return tmp_path
 
 
-def test_pdf_report_is_written_when_matplotlib_is_there(monkeypatch, report_dir):
+def test_pdf_has_six_slides_and_one_more_with_records(monkeypatch, report_dir):
     pytest.importorskip("matplotlib")
-    monkeypatch.chdir(NB)
-    run(cells("costs.ipynb", lambda s: s.replace("OFFLINE = False", "OFFLINE = True")))
-    assert (report_dir / "costs.pdf").read_bytes().startswith(b"%PDF")
+    ns = offline(monkeypatch)
+    assert ns["PAGES"] == 6 and (report_dir / "costs.pdf").read_bytes().startswith(b"%PDF")
+    assert all(page.axes for page in ns["slides"]())            # Jupyter shows nothing for a figure without axes
+    ns["RECORDS_SINCE"] = "2024-01-01"
+    assert ns["report"](report_dir / "again.pdf") == 7
+    ns["INCIDENTS"] = [{"date": "2025-03-02", "check": "expiry", "what": "cert " * 30, "cost": 300.0, "proof": "ticket 7"}] * 11
+    assert ns["report"](report_dir / "many.pdf") == 8          # ten records fit on one slide
 
 
 def offline(monkeypatch):
@@ -68,28 +72,43 @@ def test_a_record_that_cannot_be_counted_is_refused(monkeypatch, bad, why):
         ns["measured"]([one], None)
 
 
-def test_conversion_and_survey_table(monkeypatch):
+def test_conversion_and_the_chart_rows(monkeypatch):
     ns = offline(monkeypatch)
     rates = {"EUR": 1.0, "USD": 2.0}
     assert ns["convert"](10, "USD", "EUR", rates) == 5 and ns["convert"](10, "EUR", "EUR", None) == 10 and ns["convert"](1, "USD", "EUR", None) is None
-    cur, got = ns["survey_rows"]()
-    assert cur == "GBP" and got["all businesses"] == [0, 200, 1500, 4000]
-    for table in ("all_answers", "only_above_zero"):
-        for vals in ns["SURVEY"][table].values():
-            assert len(vals) == len(ns["SURVEY"]["levels"]) and vals == sorted(vals)
+    rows = ns["miss_rows"]()
+    assert rows[0][2:5] == (137 * 60, 427 * 60, "USD")          # no rates offline: the source currency is shown, not relabelled
+    for head, small, lo, hi, cur, legal in rows:
+        assert 0 < lo <= hi and legal == ("MAXIMUM" in small)    # a ceiling must say so in its own row
+    assert "NOT a small-firm figure" in rows[3][1]
+    assert [ns["short"](v) for v in (8220, 10_000_000, 1_395_603)] == ["8.2 k", "10 M", "1.4 M"]
 
 
-def test_the_chart_slices_make_one_whole(monkeypatch):
-    slices = offline(monkeypatch)["survey_slices"]()
-    assert [round(s[1], 2) for s in slices] == [57, 32.25, 6.45, 2.15, 2.15] and sum(s[1] for s in slices) == pytest.approx(100)
-    assert "GBP 4,000" in slices[-1][0]
+def test_every_number_has_a_source_and_a_text_to_look_for(monkeypatch):
+    ns = offline(monkeypatch)
+    entries = dict(ns["sources"]())
+    assert {m[0] for m in ns["MISSES"]} <= set(entries) and {g[3] for g in ns["GAINS"]} <= set(entries)
+    assert all(e["url"].startswith("https://") and e["quote"] and e["source"] for e in entries.values())
 
 
-def test_why_judged_says_whose_the_percentage_is(monkeypatch, capsys):
-    why = offline(monkeypatch)["WHY"]
-    assert f"{why['percent']}%" in why["headline"] and "Cyber Essentials certification" in why["headline"] and "judged" not in why["headline"]
-    assert "not about judged" in why["caveat"] and why["quote"].startswith(f"{why['percent']}%")
-    assert why["caveat"].split()[0] in capsys.readouterr().out
+def test_source_check_tells_confirmed_gone_and_unloadable_apart(monkeypatch):
+    verify = offline(monkeypatch)["verify"]
+
+    def fetch(url):
+        if url == "down":
+            raise OSError("reset")
+        return "<p>cost <b>$137</b> to $427 &amp; more</p>"
+
+    got = verify([("a", {"url": "x", "quote": "$137 to $427 & more"}), ("b", {"url": "x", "quote": "$999"}), ("c", {"url": "down", "quote": "x"})], fetch)
+    assert got == {"a": "confirmed", "b": "NOT FOUND", "c": "open by hand"}
+
+
+def test_the_percentage_says_whose_it_is_and_nothing_judged_lacks_is_sold(monkeypatch):
+    ns = offline(monkeypatch)
+    claims = next(g for g in ns["GAINS"] if g[3] == "claims")
+    assert "with Cyber Essentials" in claims[2] and "not about judged" in claims[2]
+    assert "does not certify" in ns["GAIN_BRIDGE"]
+    assert "Windows 10" not in (NB / "costs.ipynb").read_text() + (NB / "costdata.json").read_text()
 
 
 def test_why_judged_five_areas_are_really_mapped_in_the_code():
