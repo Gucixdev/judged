@@ -2,7 +2,7 @@
 from datetime import date
 from pathlib import Path
 
-from .statement import Result, control_status, shown
+from .statement import Result, Status, control_status, shown
 
 # maps used by checks: framework -> control ids. A Cyber Essentials id (judged/catalog.conf) is one requirement, so only a check
 # whose result bears on a requirement names it. What the NCSC text does not ask for (backups, TLS, logging, encryption) names none.
@@ -34,10 +34,13 @@ def load_frameworks(path: Path | None = None) -> dict:
 
 
 def assemble(key: str, fw: dict, results: list) -> list:
-    rows = []
+    rows, lost = [], [r for r in results if r.lost]
     for cid, title in fw["controls"].items():
         rs = [r for r in results if cid in r.maps.get(key, [])]
-        rows.append((cid, title, control_status(rs, fw.get("confirm", False)), rs))
+        status = control_status(rs, fw.get("confirm", False))
+        if lost and status == Status.PASS:
+            status, rs = Status.UNKNOWN, rs + lost
+        rows.append((cid, title, status, rs))
     return rows
 
 
@@ -56,6 +59,8 @@ def _sections(frameworks: dict, results: list, only: str | None, today: date):
         r = fw.get("reviewed")
         flag = " [UNREVIEWED control list]" if r is None or (today - r).days > 180 else f" (control list reviewed {r})"
         note = f"\n{CONFIRM_NOTE}\n" if fw.get("confirm") else ""
+        if gone := [f"{r.title}: {r.evidence}" for r in results if r.lost]:
+            note += f"\n**Part of judged crashed, so no control below can read pass:** {'; '.join(gone)}\n"
         yield f"## {fw['name']}{flag}\n{note}\n" + ", ".join(f"{v} {k}" for k, v in n.items() if v) + "\n", rows
 
 

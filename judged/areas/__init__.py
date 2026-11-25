@@ -68,5 +68,5 @@ def run_all(cfg: dict, ctx: Ctx) -> list:
         try:
             results += m.run(cfg, ctx)
         except Exception as e:                             # noqa: BLE001 - one broken area must not hide the others
-            results.append(Result(f"area.{name}", f"Audit area {name}", "unknown", f"the area crashed ({type(e).__name__}: {e}); nothing from it is in this report", M_CONFIG))
+            results.append(Result(f"area.{name}", f"Audit area {name}", "unknown", f"the area crashed ({type(e).__name__}: {e}); nothing from it is in this report", M_CONFIG, lost=True))
     return results

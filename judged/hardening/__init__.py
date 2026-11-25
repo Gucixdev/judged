@@ -73,5 +73,5 @@ def run_all(cfg: dict, env=None) -> list:
         try:
             out += m.check(cfg, env)
         except Exception as e:                             # one broken audit must not hide the rest or look like a pass
-            out.append(Result(f"hardening.{m.NAME}", f"Hardening: {m.NAME}", "unknown", f"audit crashed: {type(e).__name__}: {e}"))
+            out.append(Result(f"hardening.{m.NAME}", f"Hardening: {m.NAME}", "unknown", f"audit crashed: {type(e).__name__}: {e}", lost=True))
     return out

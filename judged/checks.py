@@ -32,7 +32,9 @@ def gpg(gnupghome: str | None = None) -> list:
     if gnupghome:
         cmd[1:1] = ["--homedir", gnupghome]
     r = subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    return parse_gpg(r.stdout) if r.returncode == 0 else []
+    if r.returncode != 0:
+        raise RuntimeError(f"gpg failed (exit {r.returncode}): {(r.stderr or '').strip()[-200:]}")
+    return parse_gpg(r.stdout)
 
 
 def date(name: str, expires, kind: str = "date", meta: dict | None = None) -> list:

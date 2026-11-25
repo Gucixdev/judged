@@ -139,5 +139,19 @@ def malware() -> Result:
                    "no ClamAV service active (other products are not detected)")
 
 
+def guarded(ident: str, title: str, maps: dict, check) -> Result:
+    try:
+        return check()
+    except Exception as e:                                  # noqa: BLE001 - one broken check must not take the others with it
+        return Result(ident, title, "unknown", f"the check crashed ({type(e).__name__}: {e})", maps)
+
+
 def all_checks(accept_ports: tuple = ()) -> list:
-    return [firewall(), listening(tuple(accept_ports)), ssh(), disk_encryption(), updates(), extra_uid0(), malware()]
+    return [guarded(*row) for row in (
+        ("host.firewall", "Host firewall", M_HOST_FIREWALL, firewall),
+        ("host.ports", "Listening services", M_SERVICES, lambda: listening(tuple(accept_ports))),
+        ("host.ssh", "SSH server", M_PASSWORD_LOGIN, ssh),
+        ("host.disk", "Disk encryption", M_CONFIG, disk_encryption),
+        ("host.updates", "Pending updates", M_UPDATES, updates),
+        ("host.uid0", "Accounts with uid 0", M_PRIVILEGES, extra_uid0),
+        ("host.malware", "Anti-malware", M_MALWARE, malware))]

@@ -9,7 +9,7 @@ from types import SimpleNamespace
 
 from .. import conf, feeds
 from ..controls import M_VULN
-from ..statement import Alert, Result
+from ..statement import Alert, Result, blind
 
 NAME, ORDER = "feeds", 5
 SPEC = {"feeds": ((), {"enabled": "bool", "online": "bool", "max_age_days": "int", "skip": "list"}, "section"),
@@ -58,7 +58,9 @@ def news(cfg: dict, ctx, last: dict) -> list:
     unless it already differs from the `seen=` you wrote."""
     out = []
     for e in _watched(cfg):
-        data = _load(e, cfg["feeds"], ctx)[0] if e.get("url") else None
+        data, state, sentence = _load(e, cfg["feeds"], ctx) if e.get("url") else (None, "none", "no url= (a misspelt id in your config?)")
+        if state != "fresh":
+            out.append(blind(f"official text {e.get('name', e['id'])}", sentence, last))
         if data is None:
             continue
         key, mark, seen = f"source:{e['id']}", data["mark"], e.get("seen", "")

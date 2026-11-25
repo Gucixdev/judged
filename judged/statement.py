@@ -24,6 +24,7 @@ class Result:
     evidence: str
     maps: dict = field(default_factory=dict)
     attested: bool = False  # a person's statement, not something judged measured
+    lost: bool = False      # a part of judged crashed: nobody knows what it would have said, so no control may read pass
 
 
 def control_status(results: list, confirm: bool = False) -> str:
@@ -50,6 +51,14 @@ class Alert:
     value: object          # remembered once the alert is out, so the same thing is said only once
     title: str = ""        # empty: nothing to say, only remember the value
     body: str = ""
+
+
+def blind(what: str, why: str, last: dict) -> Alert:
+    """Something judged is meant to watch and cannot look at. Said once, on the second pass in a row (one network blip stays quiet);
+    the count is dropped when it can look again, so the next outage is said again."""
+    key = f"blind:{what}"
+    n = last.get(key, 0) + 1
+    return Alert(key, n, f"judged: cannot check {what}" if n == 2 else "", why)
 
 
 def deliver(alerts: list, state: dict, last: dict, send, dry: bool) -> dict:

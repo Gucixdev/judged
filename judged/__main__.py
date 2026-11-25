@@ -30,7 +30,8 @@ def load(path: Path) -> dict:
     return conf.load_strict(path)           # every option must be written down; see `judged config template`
 
 
-def collect(cfg: dict) -> list:
+def collect(cfg: dict, unseen: list | None = None) -> list:
+    """The dated items. What could not be looked at is printed and, if `unseen` is given, added to it as (what, why)."""
     items = []
     for e in cfg.get("item", []):
         try:
@@ -46,7 +47,10 @@ def collect(cfg: dict) -> list:
                 meta = {k: v for k, v in e.items() if k not in ("kind", "name", "expires")}
                 items += checks.date(e["name"], e["expires"], "licence", meta)
         except Exception as ex:  # one broken item must not hide the others
-            print(f"warn: {e.get('name', e['kind'])}: {ex}", file=sys.stderr)
+            what = f"{e['kind']} {e.get('name') or e.get('host') or e.get('homedir') or ''}".strip()
+            print(f"unknown: {what}: {ex}", file=sys.stderr)
+            if unseen is not None:
+                unseen.append((what, f"{type(ex).__name__}: {ex}"))
     return items + obligations.items(cfg) + areas.items(cfg, datetime.now(timezone.utc).date())
 
 
@@ -67,7 +71,8 @@ def once(cfg_path: Path, dry: bool) -> int:
     now = datetime.now(timezone.utc)
     state_file = xdg("XDG_STATE_HOME", ".local/state") / "judged" / "state.json"
     state = json.loads(state_file.read_text()) if state_file.exists() else {}
-    items = collect(cfg)
+    unseen: list = []
+    items = collect(cfg, unseen)
     for it in sorted(items, key=lambda i: i.expires):
         print(f"{core.days_left(it, now):8.1f} d  {it.kind:4} {it.name}")
     alerts, new_state = core.due(items, state, lead, now)
@@ -76,6 +81,7 @@ def once(cfg_path: Path, dry: bool) -> int:
         title = f"judged: {it.name} " + ("EXPIRED" if b < 0 else f"expires in {core.days_left(it, now):.0f} days")
         dated.append(statement.Alert(f"{it.kind}:{it.name}", b, title, f"{it.kind} {it.name} expires {it.expires:%Y-%m-%d} (band {b})"))
     new_state.update({k: v for k, v in state.items() if k.startswith("source:")})     # a source that is offline today is not forgotten
+    dated += [statement.blind(what, why, state) for what, why in unseen]
     statement.deliver(dated + areas.news(cfg, areas.Ctx(now.date(), state_file.parent), state), new_state, state,
                       lambda title, body: notify.send(notify_urls(cfg), title, body), dry)
     if not dry:

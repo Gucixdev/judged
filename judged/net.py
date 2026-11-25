@@ -114,4 +114,6 @@ def gpg() -> list:
         r = subprocess.run(["gpg", "--list-keys", "--with-colons"], capture_output=True, text=True, timeout=30)
     except (OSError, subprocess.TimeoutExpired):
         return [Result("gpg", "GPG keys", "unknown", "gpg not available", M_CRYPTO)]
-    return gpg_hygiene(r.stdout) if r.returncode == 0 else []
+    if r.returncode != 0:
+        return [Result("gpg", "GPG keys", "unknown", f"gpg failed (exit {r.returncode}): no key was checked", M_CRYPTO)]
+    return gpg_hygiene(r.stdout)
