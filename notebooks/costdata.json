@@ -1,6 +1,16 @@
 {
   "checked": "2026-11-25",
   "note": "Published figures. `quote` is the exact text that must still be on the source page; `judged costs --check` downloads the page and tells you when it is gone (the figure may have changed). kind: published = a survey or law, vendor = said by someone who sells the fix, computed = arithmetic on a published figure.",
+  "uk_survey": {
+    "source": "UK government, Cyber Security Breaches Survey 2025/2026, Tables 4.1a and 4.2a (published 2026-04-30)",
+    "url": "https://www.gov.uk/government/statistics/cyber-security-breaches-survey-20252026/cyber-security-breaches-survey-20252026",
+    "quote": "A median cost of £0 reflects",
+    "currency": "GBP",
+    "had_a_breach_percent": {"all": 43, "micro": 42, "small": 46, "medium": 65, "large": 69},
+    "levels": ["median", "75th percentile", "90th percentile", "95th percentile"],
+    "all_answers": {"all businesses": [0, 200, 1500, 4000], "micro and small": [0, 190, 1140, 4000], "medium and large": [30, 500, 2330, 10000]},
+    "only_above_zero": {"all businesses": [200, 1000, 4800, 10000], "micro and small": [200, 1000, 4150, 8300], "medium and large": [300, 1620, 7300, 28200]}
+  },
   "figures": [
     {"id": "breach-global", "label": "Data breach, global average", "low": 4440000, "high": 4440000, "currency": "USD", "period": "incident", "kind": "published",
      "source": "IBM Cost of a Data Breach 2025", "url": "https://www.ibm.com/think/x-force/2025-cost-of-a-data-breach-navigating-ai", "quote": "4.44 million"},

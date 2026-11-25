@@ -12,6 +12,20 @@ How to read it:
 
 ## 1. What one bad incident costs
 
+**Start here if the firm is small.** UK government, [Cyber Security Breaches Survey 2025/2026](https://www.gov.uk/government/statistics/cyber-security-breaches-survey-20252026/cyber-security-breaches-survey-20252026),
+published 2026-04-30, read from the page itself. Cost of the single most disruptive breach or attack of the last 12 months,
+estimated by the business, among those that noticed one (43% of all businesses), zero answers included (Table 4.1a):
+
+| Businesses | Median | 75th percentile | 90th percentile | 95th percentile |
+|---|---|---|---|---|
+| all | GBP 0 | GBP 200 | GBP 1,500 | GBP 4,000 |
+| micro and small | GBP 0 | GBP 190 | GBP 1,140 | GBP 4,000 |
+| medium and large | GBP 30 | GBP 500 | GBP 2,330 | GBP 10,000 |
+
+The survey stopped publishing averages this year. The figures below are averages and ceilings from other samples; they
+are far larger and are not what a typical small firm should expect. None of this says how much judged saves.
+
+
 | What | Figure | Unit | Source |
 |---|---|---|---|
 | Data breach, global average | USD 4.44 million (down 9% from 4.88 million in 2024) | per incident | IBM 2025 |
@@ -95,4 +109,4 @@ way to break production.
 - Cyber insurance (brokers): [Insureon](https://www.insureon.com/small-business-insurance/cyber-liability/cost), [MoneyGeek](https://www.moneygeek.com/insurance/business/cyber/cost/), [Insurance Journal](https://www.insurancejournal.com/news/national/2026/10/16/889133.htm)
 - Licence audits: [CIO Dive on the Azul and ITAM Forum survey](https://www.ciodive.com/news/software-audit-costs-java-open-source-itam-azul/753598/), [InfoWorld](https://www.infoworld.com/article/2245170/got-enterprise-software-youre-probably-due-for-an-audit-3.html)
 
-Figures were read from search results on 2026-11-25, not from the full reports. Before quoting one in a contract or a budget, open the source.
+Apart from the UK survey table, figures were read from search results on 2026-11-25, not from the full reports. Before quoting one in a contract or a budget, open the source.

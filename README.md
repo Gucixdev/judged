@@ -73,17 +73,24 @@ Notification URLs hold tokens: keep them in `~/.config/judged/notify` (mode 600)
 
 ## What it can save
 
-There is no measured saving (judged has no customer data); this is arithmetic on published figures ([docs/costs.md](docs/costs.md), and `notebooks/costs.ipynb` to type your own numbers),
-to be replaced with your own. A certificate that expires unnoticed and takes 4 hours to fix costs a small firm USD 33,000 to 102,000
-(USD 137 to 427 a minute, Ponemon). A contract that renews by a missed notice date costs one full term. A dependency on the CISA
-list is the kind of hole behind Equifax (USD 1.38 billion settlement). Expected saving is the yearly chance of a miss times the cost: one
-such outage in ten years is USD 3,300 a year, against EUR 0 for the tool and an afternoon of setup.
+Unknown. judged has no customer data and nobody has measured what it saves, so no figure is given here.
+
+What is known is what breaches cost. In the UK government's
+[Cyber Security Breaches Survey 2025/2026](https://www.gov.uk/government/statistics/cyber-security-breaches-survey-20252026/cyber-security-breaches-survey-20252026),
+43% of businesses noticed a breach or attack in 12 months. For the most disruptive one, as the businesses estimated it:
+the median cost was GBP 0, 95% said GBP 4,000 or less, and for medium and large businesses 95% said GBP 10,000 or less.
+The survey publishes no average, so the rare very large cases do not show in these numbers. These are costs of
+breaches, not savings from a tool.
+
+For your own firm, `notebooks/costs.ipynb` adds up past misses that a judged check watches, each with its proof
+(invoice, ticket, contract). Without records it shows no number. Published prices with sources: [docs/costs.md](docs/costs.md).
+
 ## Tests
 
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-401 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
+409 tests, most of them against fake command output with exact inputs; the newer modules were also mutation-tested.
 `tests/e2e/` builds a clean Debian container with Python 3.13 and a local ACME test server (needs podman or docker).
 A few tests read schema data from `$JUDGED_TEST_DATA` and skip when it is missing.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Computes the costs notebook (charts, tables, out/costs.pdf) and opens it in the browser through Jupyter. No arguments.
+# Computes the costs notebook (chart, tables, out/costs.pdf) and opens it in the browser through Jupyter. No arguments.
 # NO_BROWSER=1: compute only.
 # Jupyter is not a dependency of judged: install it once with
 #   python3 -m venv "$H" && "$H/bin/pip" install notebook nbconvert matplotlib
@@ -30,7 +30,7 @@ new=$(sha256sum costs.ipynb | cut -d' ' -f1)
 if [ ! -f out/costs.ipynb ] || [ "$new" != "$(cat out/.source.sha256 2>/dev/null)" ]; then
     if [ -f out/costs.ipynb ]; then
         mv out/costs.ipynb out/costs.previous.ipynb
-        echo "The notebook changed: your old copy is out/costs.previous.ipynb (copy your MINE values over)."
+        echo "The notebook changed: your old copy is out/costs.previous.ipynb (copy your RECORDS_SINCE and INCIDENTS over)."
     fi
     cp costs.ipynb out/costs.ipynb && echo "$new" > out/.source.sha256 || exit 1
 fi
