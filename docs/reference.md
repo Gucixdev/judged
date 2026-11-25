@@ -2,6 +2,19 @@
 
 Every check, option and file format. The front page is the [README](../README.md); open work is in [todo.md](todo.md), finished work in [done.md](done.md).
 
+
+
+
+##inspiracje 
+cairn compAI probo expiryradar trustwatch e8mate security-controls-metrics 
+
+
+
+
+
+
+
+
 ## What `audit` checks
 
 Host (Linux, read-only): firewall, listening services, SSH config, disk encryption, pending updates, extra uid-0

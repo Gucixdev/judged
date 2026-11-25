@@ -1,10 +1,15 @@
 #!/usr/bin/env bash
 # Opens the costs notebook in the browser through Jupyter. No arguments.
 # Jupyter is not a dependency of judged: install it once with
-#   python3 -m venv ~/.local/share/judged-notebook && ~/.local/share/judged-notebook/bin/pip install notebook
-# and this script finds it there, or on PATH. Run it from nnn or a shell; the notebook reads costdata.json next to it.
+#   python3 -m venv "$H" && "$H/bin/pip" install notebook nbconvert
+# where H is ${JUDGED_NOTEBOOK_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/judged-notebook}.
+# The venv takes a few hundred MB: on a small root disk, set JUDGED_NOTEBOOK_HOME to a folder on another
+# disk (in your shell profile) before the install and before every run, and point TMPDIR and PIP_CACHE_DIR
+# there too (not at /tmp, which may be a RAM disk). This script finds the venv there, or jupyter on PATH.
+# Run it from nnn or a shell; the notebook reads costdata.json next to it.
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
-for j in "${XDG_DATA_HOME:-$HOME/.local/share}/judged-notebook/bin/jupyter" "$(command -v jupyter)"; do
+H="${JUDGED_NOTEBOOK_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/judged-notebook}"
+for j in "$H/bin/jupyter" "$(command -v jupyter)"; do
     if [ -n "$j" ] && [ -x "$j" ]; then exec "$j" notebook costs.ipynb; fi
 done
 echo "Jupyter is not installed. See the header of $0 for the two commands." >&2

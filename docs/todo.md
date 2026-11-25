@@ -111,3 +111,22 @@ rust go python php java javascript typescript im wiecej jezykow pokryc tym lepie
 # containers 
 
 podman docker flatpak proxmox distrobox
+
+
+**Inspirations (2026-11-25)** (from [inspirations.md](inspirations.md); matches for cairn, compAI, trustwatch and expiryradar are guesses, see there; AGPL sources are technique only, MIT sources may be copied with the notice)
+- [ ] First-seen date per finding kept in the state folder, and "days open" in the report; a high or critical finding open more than 14 days is a `fail` for Cyber Essentials (security-controls-metrics, e8mate). Mean time to fix and overdue count per owner come after that
+- [ ] Controls added to `catalog.conf` with ids from the official texts and a map from the checks that already exist: SOC 2 trust criteria (CC6 access, CC7 operations, A1 backup), more ISO 27001 Annex A ids, NIS2 Art. 21 measures, DORA; mark all `unverified` (probo)
+- [ ] NIST CSF 2.0 and CIS Controls v8 as extra mapping targets for `maps=` (security-controls-metrics)
+- [ ] ASD Essential Eight as a framework (`--framework e8`): the eight strategies with maturity level 1 checks; maturity per strategy = highest level whose checks all pass, overall = lowest; ASD outcome names mapped to judged statuses; text typed from the ASD maturity model, `unverified` until read (e8mate)
+- [ ] Essential Eight gaps on Linux: allowlisting state (fapolicyd, AppArmor or SELinux enforcing), patch age in days after a fix exists, backup copy stored apart from the machine and not writable by normal accounts, age limit tied to a stated recovery point, GitHub 2FA for the account and organisation members as the first MFA evidence (e8mate)
+- [ ] Device checks missing next to the existing host audit: screen lock timeout (GNOME, KDE, sway, i3), time sync (chrony, systemd-timesyncd), password policy (`PASS_MAX_DAYS`, pam_pwquality), `/etc/shadow` permissions, unattended updates switched on (probo device agent, security-controls-metrics)
+- [ ] `review` line for measures with no machine evidence, dated and recurring: `review NAME every=12m last=YYYY-MM-DD owner=NAME maps=...`; due and overdue use the same alert bands as expiry. First entries: risk assessment, internal audit, management review, disaster recovery test, penetration test, security training, access review, policy review, offboarding checklist (probo, compAI)
+- [ ] Evidence attached to a control: a file path or URL with a date and an owner, listed in the audit output under the control it supports (probo)
+- [ ] Statement of Applicability output: per control, applies or not, reason, and the check or `review` that proves it (probo, cairn)
+- [ ] Supplier questionnaire: weighted questions, must-have answers that block approval, answers file per supplier, score and decision in `paperwork`; questions mapped to ISO 27001 A.5.19 to A.5.23 and GDPR Art. 28 (security-controls-metrics)
+- [ ] `judged incident start TIME`: prints every statutory deadline from the catalog (GDPR 72 h, NIS2 24 h, 72 h, one month, DORA) as clock times; a duty with no numeric limit prints "without undue delay" and no invented hours (cairn)
+- [ ] `certification` line for certificates you hold (ISO 27001, Cyber Essentials, SOC 2 report) with number, issuer, scope, expiry and the one it replaces; expiry alerts like any date (cairn)
+- [ ] CA trust stores: system bundle and each certifi copy of the listed Python environments checked against the Mozilla CCADB removed-roots report (feed under `feeds/`) and for age of the bundle (trustwatch, Naveen-Sai-Ganadi)
+- [ ] Maintainer count next to each npm and PyPI dependency result, limited by `max_lookups`; a single publisher is a warning (trustwatch, Dovakyr, no licence: idea only, nothing copied)
+- [ ] Export of all dated items (expiry, paperwork, `review`) as one CSV or iCalendar file (expiryradar)
+- [ ] Per-result record keeps the command that produced the evidence and the time it ran, not only the evidence text (e8mate)
