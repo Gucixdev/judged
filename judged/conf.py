@@ -127,7 +127,9 @@ def template() -> str:
         out.append(line_for(sec, keys))
         out.append("")
     out.append("# Entries (repeat as needed): tls HOST, site HOST, domain HOST, date NAME YYYY-MM-DD, licence NAME YYYY-MM-DD cost=..,")
-    out.append("# waive ID YYYY-MM-DD owner=.. reason=\"..\", obligation ID last_done=YYYY-MM-DD, renew HOST cmd=\"..\", check NAME cmd=\"..\" maps=fw:ctl")
+    out.append("# waive ID YYYY-MM-DD owner=.. reason=\"..\", obligation ID last_done=YYYY-MM-DD, renew HOST cmd=\"..\", check NAME cmd=\"..\" maps=fw:ctl,")
+    out.append("# review NAME months=12 last=YYYY-MM-DD owner=.. proof=.. maps=fw:ctl, certification NAME EXPIRES number=.. issuer=.. owner=.. proof=..,")
+    out.append("# notapplicable FRAMEWORK CONTROL owner=.. reason=\"..\"")
     return "\n".join(out) + "\n"
 
 

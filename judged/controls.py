@@ -1,8 +1,8 @@
-"""Result model and the roll-up of checks into framework controls. A control with no automated
-evidence is 'manual' (a person must supply it); it is never reported as passed."""
+"""Framework controls: which checks are evidence for which, and the tables that show it."""
 from datetime import date
-from dataclasses import dataclass, field
 from pathlib import Path
+
+from .statement import Result, control_status, shown
 
 # maps used by checks: framework -> control ids
 M_FIREWALL = {"ce": ["firewalls"], "iso27001": ["A.8.20"], "gdpr": ["art32"]}
@@ -15,28 +15,9 @@ M_MAIL = {"gdpr": ["art32"]}
 M_CRYPTO = {"ce": ["secure-config"], "iso27001": ["A.8.24"], "gdpr": ["art32", "art5-1f"]}
 
 
-@dataclass
-class Result:
-    id: str
-    title: str
-    status: str            # pass | warn | fail | unknown (could not check) | na
-    evidence: str
-    maps: dict = field(default_factory=dict)
-
-
 def load_frameworks(path: Path | None = None) -> dict:
     from . import conf
     return (conf.load(path) if path else conf.catalog())["frameworks"]
-
-
-def control_status(results: list) -> str:
-    seen = {r.status for r in results if r.status != "na"}
-    if not seen:
-        return "manual"
-    for s in ("fail", "warn", "unknown"):
-        if s in seen:
-            return s
-    return "pass"
 
 
 def assemble(key: str, fw: dict, results: list) -> list:
@@ -47,21 +28,49 @@ def assemble(key: str, fw: dict, results: list) -> list:
     return rows
 
 
-def markdown(frameworks: dict, results: list, only: str | None = None, today: date | None = None) -> str:
-    today = today or date.today()
-    out = [f"_Report as of {today}._\n"]
+STATUSES = ("pass", "warn", "fail", "unknown", "manual", "n/a")
+
+
+def _sections(frameworks: dict, results: list, only: str | None, today: date):
+    """(heading with status counts, rows) for each framework asked for."""
     for key, fw in frameworks.items():
         if only and key != only:
             continue
         rows = assemble(key, fw, results)
-        n = {s: sum(1 for r in rows if r[2] == s) for s in ("pass", "warn", "fail", "unknown", "manual")}
+        n = {s: sum(1 for r in rows if r[2] == s) for s in STATUSES}
         r = fw.get("reviewed")
         flag = " [UNREVIEWED control list]" if r is None or (today - r).days > 180 else f" (control list reviewed {r})"
-        out.append(f"## {fw['name']}{flag}\n\n" + ", ".join(f"{v} {k}" for k, v in n.items() if v) + "\n")
-        out.append("| Control | Status | Evidence |\n|---|---|---|")
-        for cid, title, st, rs in rows:
-            ev = "; ".join(f"{r.title}: {r.evidence}" for r in rs) or "no automated evidence, a person must supply it"
-            out.append(f"| {cid} {title} | {st} | {ev.replace('|', '/')} |")
+        yield f"## {fw['name']}{flag}\n\n" + ", ".join(f"{v} {k}" for k, v in n.items() if v) + "\n", rows
+
+
+def _cell(parts: list, empty: str) -> str:
+    return ("; ".join(parts) or empty).replace("|", "/")
+
+
+def markdown(frameworks: dict, results: list, only: str | None = None, today: date | None = None) -> str:
+    today = today or date.today()
+    out = [f"_Report as of {today}._\n"]
+    for head, rows in _sections(frameworks, results, only, today):
+        out += [head, "| Control | Status | Evidence |\n|---|---|---|"]
+        out += [f"| {cid} {title} | {shown(st, rs)} | {_cell([f'{r.title}: {r.evidence}' for r in rs], 'no evidence yet, a person must supply it')} |"
+                for cid, title, st, rs in rows]
         out.append("")
-    out.append("_Automated machine evidence only. Not a certification; policy and process controls need people._")
+    out.append("_`pass (statements only)` rests on what people stated, with owner and proof; nothing was measured. This report is not a certificate._")
+    return "\n".join(out)
+
+
+def soa(frameworks: dict, results: list, only: str | None = None, today: date | None = None) -> str:
+    """Statement of applicability: per control, whether it applies and what proves it, then what is still open before an audit."""
+    today = today or date.today()
+    out = [f"# Statement of applicability\n\n_{today}._\n"]
+    for head, rows in _sections(frameworks, results, only, today):
+        out += [head, "| Control | Applies | Status | Proven by, or why not |\n|---|---|---|---|"]
+        for cid, title, st, rs in rows:
+            proof = [r.evidence if st == "n/a" else f"{r.title} ({'statement' if r.attested else 'measured'}, {r.status})" for r in rs]
+            out.append(f"| {cid} {title} | {'no' if st == 'n/a' else 'yes'} | {shown(st, rs)} | {_cell(proof, 'nothing yet')} |")
+        todo = [f"{label}: {', '.join(ids)}" for label, wanted in (("failing", ("fail",)), ("to review", ("warn", "unknown")), ("no evidence", ("manual",)))
+                if (ids := [cid for cid, _, st, _ in rows if st in wanted])]
+        out.append("\nOpen before an audit: " + ("; ".join(todo) if todo else "nothing that judged knows of") + ".\n")
+    out.append("_This lists what judged has on file. A certificate comes from a certification body and its assessor decides what is enough; "
+               "one check rarely covers every requirement of a control._")
     return "\n".join(out)

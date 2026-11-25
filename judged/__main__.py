@@ -1,7 +1,7 @@
 """judged sbom [--format cyclonedx|spdx] [--project DIR] [--out DIR]   software bill of materials from lockfiles
    judged diff [--old F --new F]               what changed since the previous saved report (exit 1 if something got worse)
    judged config template | check               a complete config with every option / validate yours (a missing option is an error)
-   judged audit [-c FILE] [--framework ce|gdpr|iso27001] [--json]   machine evidence per control
+   judged audit [-c FILE] [--framework ce|gdpr|iso27001] [--json | --soa]   evidence per control; --soa: what applies, what proves it, what is open
    judged renew [-c FILE] [--dry-run]   renew certificates that are due, then verify the served one changed
    judged report [--path]               print the newest report.md (pipe to less); --path prints where it is
    judged licences [-c FILE]            bought licences per year of expiry with cost totals
@@ -18,9 +18,8 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 import glob
-from .controls import Result
 from .secrets import M_SECRETS
-from . import report, checks, conf, contracts, controls, core, host, mail, net, notify, licences, obligations, renew, rules, secrets, web, deps, sandbox, containers, malware, waivers, areas, sbom, integrity, links
+from . import report, checks, conf, controls, core, host, mail, net, notify, licences, obligations, renew, rules, secrets, web, deps, sandbox, containers, malware, waivers, areas, sbom, integrity, links, statement
 
 
 def xdg(var: str, fallback: str) -> Path:
@@ -48,7 +47,7 @@ def collect(cfg: dict) -> list:
                 items += checks.date(e["name"], e["expires"], "licence", meta)
         except Exception as ex:  # one broken item must not hide the others
             print(f"warn: {e.get('name', e['kind'])}: {ex}", file=sys.stderr)
-    return items + obligations.items(cfg) + contracts.items(cfg)
+    return items + obligations.items(cfg) + areas.items(cfg, datetime.now(timezone.utc).date())
 
 
 def notify_urls(cfg: dict) -> list[str]:
@@ -72,15 +71,13 @@ def once(cfg_path: Path, dry: bool) -> int:
     for it in sorted(items, key=lambda i: i.expires):
         print(f"{core.days_left(it, now):8.1f} d  {it.kind:4} {it.name}")
     alerts, new_state = core.due(items, state, lead, now)
+    dated = []
     for it, b in alerts:
-        d = core.days_left(it, now)
-        title = f"judged: {it.name} " + ("EXPIRED" if b < 0 else f"expires in {d:.0f} days")
-        body = f"{it.kind} {it.name} expires {it.expires:%Y-%m-%d} (band {b})"
-        if dry:
-            print(f"[dry-run] would send: {title}")
-        elif not notify.send(notify_urls(cfg), title, body):
-            print(f"warn: not delivered: {title}", file=sys.stderr)
-            new_state.pop(f"{it.kind}:{it.name}", None)  # try again next pass
+        title = f"judged: {it.name} " + ("EXPIRED" if b < 0 else f"expires in {core.days_left(it, now):.0f} days")
+        dated.append(statement.Alert(f"{it.kind}:{it.name}", b, title, f"{it.kind} {it.name} expires {it.expires:%Y-%m-%d} (band {b})"))
+    new_state.update({k: v for k, v in state.items() if k.startswith("source:")})     # a source that is offline today is not forgotten
+    statement.deliver(dated + areas.news(cfg, areas.Ctx(now.date(), state_file.parent), state), new_state, state,
+                      lambda title, body: notify.send(notify_urls(cfg), title, body), dry)
     if not dry:
         state_file.parent.mkdir(parents=True, exist_ok=True)
         state_file.write_text(json.dumps(new_state))
@@ -94,7 +91,7 @@ def report_dir() -> Path:
     return xdg("XDG_STATE_HOME", ".local/state") / "judged" / "reports"
 
 
-def audit(cfg_path: Path, only: str | None, as_json: bool, report_to: str | None = None, notify_report: bool = False) -> int:
+def audit(cfg_path: Path, only: str | None, as_json: bool, report_to: str | None = None, notify_report: bool = False, soa: bool = False) -> int:
     """Collect machine evidence and roll it up into framework controls."""
     if not cfg_path.exists():
         raise conf.ConfError(f"no config at {cfg_path}: create one with `judged config template > {cfg_path}`")
@@ -118,7 +115,7 @@ def audit(cfg_path: Path, only: str | None, as_json: bool, report_to: str | None
     elif as_json:
         print(json.dumps([r.__dict__ for r in results], indent=1))
     else:
-        print(controls.markdown(controls.load_frameworks(), results, only))
+        print((controls.soa if soa else controls.markdown)(controls.load_frameworks(), results, only))
     if any(r.status == "fail" for r in results):
         return 1
     return 0 if delivered else 3               # 3 = the audit is clean but the message did not leave
@@ -236,6 +233,7 @@ def main() -> int:
     ap.add_argument("--every", type=float, default=6.0, help="hours between passes (run)")
     ap.add_argument("--framework", choices=["ce", "gdpr", "iso27001"])
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--soa", action="store_true", help="audit: print the statement of applicability and what is still open before an audit")
     ap.add_argument("--report", nargs="?", const=AUTO_REPORT, metavar="FILE", help="write one readable report instead of printing (no FILE: into the state folder, see `judged report`)")
     ap.add_argument("--notify", action="store_true", help="audit: also send the summary and the full report through the notify section (notts or Apprise)")
     ap.add_argument("--old", type=Path, help="diff: older raport-*.json (default: the second newest)")
@@ -288,7 +286,7 @@ def main() -> int:
         print(newest if a.path else newest.read_text(encoding="utf-8"), end="\n" if a.path else "")
         return 0
     if a.cmd == "audit":
-        return audit(a.config, a.framework, a.json, a.report, a.notify)
+        return audit(a.config, a.framework, a.json, a.report, a.notify, a.soa)
     if a.cmd == "check":
         return once(a.config, a.dry_run)
     while True:

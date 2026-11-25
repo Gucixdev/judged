@@ -56,6 +56,12 @@ Finished and checked, newest groups last. Each line says how it was checked.
 **Delivery and platforms**
 - [x] Your own rules without code: `check "name" cmd=... maps=ce:x,iso27001:A.8.13` in `judged.conf` or in a file pulled in by `include rules/*.rules`; exit 0 pass, 1 fail, 2 warn, else unknown
 
+**Certification and official texts (2026-11-25)**
+- [x] `review`, `certification`, `notapplicable` lines (`areas/assurance_area.py`): a statement passes only with owner and proof, overdue or never done is a fail, unknown control ids are a warning; a control resting on statements alone reads `pass (statements only)`; their dates alert like any expiry. `audit --soa`: what applies, what proves it, what is open. Tests with exact dates on the boundaries; real run on this laptop with a scratch config (SoA and `check --dry-run`)
+- [x] Watched official texts (`source` lines): a short marker of what `match=` finds, `warn` until `seen=` matches, `unknown` when nothing was downloaded or the pattern finds nothing, one alert per new marker from `check`/`run`. All 7 shipped sources downloaded for real on 2026-11-25 (EUR-Lex 4 to 16 s each, the rest under 1 s); the EUR-Lex query was checked against eIDAS, which has known amendments, and it showed 32025R0327 amending the Cyber Resilience Act. A real change has not been observed yet, so the alert is tested with fakes only
+- [x] `judged/statement.py`: pass, warn, fail (unknown, na), the result, the roll-up into a control, and the alert with one `deliver` used for both dates and changed sources (not for renewal messages); `controls.py` re-exports the old names. Tests for the order of the statuses and for a failed delivery being retried
+- [x] Tests no longer reach the internet (`tests/conftest.py`); two end-to-end tests had been downloading from public sites
+
 **Feeds, code standards, costs (2026-11-25)**
 - Public lists cached as JSON (`judged/feeds/`, area `feeds`): CISA known-exploited CVEs; fresh, stale (warn) and none (unknown) states, atomic cache write, 30 MB limit, offline option. Tests use an injected fetch, no network.
 - `deps.<name>.exploited`: a vulnerable dependency whose CVE (own id or alias) is on the CISA list is a fail, waived ones included (a waiver never hides it). Tested with fakes; not run against the live list in the suite.

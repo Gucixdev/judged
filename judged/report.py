@@ -4,6 +4,7 @@ from datetime import date, datetime
 from pathlib import Path
 
 from . import controls
+from .statement import SEVERITY
 
 HEAD = {"fail": "Fix first", "warn": "Look at these", "unknown": "Could not be checked"}
 HELP = {
@@ -16,7 +17,7 @@ HELP = {
 def build(results: list, only: str | None = None, today: date | None = None) -> str:
     today = today or date.today()
     n = {s: sum(1 for r in results if r.status == s) for s in ("fail", "warn", "unknown", "pass", "na")}
-    out = [f"# Security and compliance report\n\n_{today}. Machine evidence only; policy and process controls need a person._\n",
+    out = [f"# Security and compliance report\n\n_{today}. Machine checks, and what people stated where marked (statement)._\n",
            f"**{n['fail']} to fix, {n['warn']} to review, {n['unknown']} could not be checked, {n['pass']} fine.**\n"]
     for status in ("fail", "warn", "unknown"):
         rows = [r for r in results if r.status == status]
@@ -26,7 +27,7 @@ def build(results: list, only: str | None = None, today: date | None = None) -> 
         out += [f"- **{r.title}**: {r.evidence}" for r in sorted(rows, key=lambda r: r.title)]
         out.append("")
     if n["pass"]:
-        out.append(f"## Fine ({n['pass']})\n\n" + ", ".join(sorted(r.title for r in results if r.status == "pass")) + "\n")
+        out.append(f"## Fine ({n['pass']})\n\n" + ", ".join(sorted(r.title + " (statement)" * r.attested for r in results if r.status == "pass")) + "\n")
     out.append("---\n\n# Detail per framework\n")
     out.append(controls.markdown(controls.load_frameworks(), results, only, today))
     return "\n".join(out)
@@ -48,7 +49,8 @@ def summary(results: list, today: date | None = None) -> tuple:
 
 
 def dump(results: list) -> str:
-    return json.dumps([{"id": r.id, "title": r.title, "status": r.status, "evidence": r.evidence} for r in results], indent=1, ensure_ascii=False)
+    return json.dumps([{"id": r.id, "title": r.title, "status": r.status, "evidence": r.evidence} | ({"attested": True} if r.attested else {})
+                       for r in results], indent=1, ensure_ascii=False)
 
 
 def save(text: str, folder: Path, now: datetime | None = None, results: list | None = None) -> Path:
@@ -72,9 +74,6 @@ def newest(folder: Path) -> Path | None:
         return latest
     dated = sorted(folder.glob("raport-*.md")) if folder.is_dir() else []
     return dated[-1] if dated else None
-
-
-SEVERITY = {"fail": 3, "warn": 2, "unknown": 1, "pass": 0, "na": 0}
 
 
 def load_results(path: Path) -> dict:

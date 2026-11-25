@@ -107,7 +107,8 @@ def test_the_percentage_says_whose_it_is_and_nothing_judged_lacks_is_sold(monkey
     ns = offline(monkeypatch)
     claims = next(g for g in ns["GAINS"] if g[3] == "claims")
     assert "with Cyber Essentials" in claims[2] and "not about judged" in claims[2]
-    assert "does not certify" in ns["GAIN_BRIDGE"]
+    assert "A certification body issues the certificate" in ns["GAIN_BRIDGE"]     # judged prepares, it does not issue
+    assert next(g for g in ns["GAINS"] if g[3] == "insurance")[0].startswith("up to ")  # a cover limit, not money
     assert "Windows 10" not in (NB / "costs.ipynb").read_text() + (NB / "costdata.json").read_text()
 
 

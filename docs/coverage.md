@@ -3,7 +3,7 @@
 Everything listed here is written and tested. What is still open is in [todo.md](todo.md), what a miss costs in [costs.md](costs.md), and the long
 explanation of each check in [reference.md](reference.md). judged only reads and reports; it never repairs, deletes, restores or renews on its own.
 
-Every result is one of `pass`, `warn`, `fail`, `unknown` or (for a control with no machine evidence) `manual`. `fail` is for what is certain,
+Every result is one of `pass`, `warn`, `fail`, `unknown` or `na`. A control with no evidence at all is `manual`, one taken out of scope by a named decision is `n/a`, and one that passes on people's statements alone reads `pass (statements only)`. Alerts go out from `check` and `run`: dates in their bands, and a watched official text that changed. `fail` is for what is certain,
 `warn` for what depends on your intent, `unknown` when the check could not look. Nothing is hidden: an option that accepts a finding keeps it
 visible. The option tables below are generated from the code (a test fails when an option is missing from this file).
 
@@ -14,7 +14,7 @@ visible. The option tables below are generated from the code (a test fails when 
 | **expiry** (`tls`, `gpg`, `domain`, `date`, `licence`, `contract` lines) | TLS certificates, GPG keys, SSH keys, domains, bought licences, contracts and DPAs with a notice period; one alert per band (30, 14, 7, 1 days by default) | any |
 | **renewal** (`renew` line) | runs your own ACME client or GPG extension when a certificate is due, then reads the served certificate again: unchanged is a failure whatever the exit code said | any |
 | **obligations** (`company`, `obligation`, `duty`) | recurring and event deadlines for the regions you name: Cyber Essentials, ISO 27001, GDPR (72 h breach notice), NIS2 (24 h, 72 h, one month), Cyber Resilience Act. Catalog typed from memory, marked unreviewed | any |
-| **feeds** | public lists cached as JSON: CISA known-exploited vulnerabilities | any |
+| **feeds** (`source` lines) | public lists cached as JSON: CISA known-exploited vulnerabilities; official texts watched for changes: GDPR, NIS2, DORA and CRA amendments (EUR-Lex), the Cyber Essentials requirements and scheme pages, the Polish data protection act (Sejm) | any |
 | **host** and **hardening** | firewall, listening ports, SSH server and keys, sudoers, setuid and world-writable files, 13 kernel settings, logging, updates, disk encryption, extra uid-0 accounts, anti-malware service | Linux |
 | **agents** | Claude Code permission settings, MCP server configs, hidden characters in instruction files, AI provider keys left in plain text or in a tracked `.env` | Linux, paths for Windows and macOS open |
 | **secrets** | token shapes, secret-named files, `.env` files, high-entropy strings, your own names and paths, e-mail addresses (masked), git history | any |
@@ -30,6 +30,7 @@ visible. The option tables below are generated from the code (a test fails when 
 | **paperwork** | contracts, suppliers, DPAs, insurance and trademarks: last day to give notice, auto-renew cost exposure per currency | any |
 | **codestd** | MISRA C (cppcheck), CERT C (clang-tidy), shellcheck; findings are warnings; off by default | Linux |
 | **custom checks** (`check` line) | your own command, mapped to controls | any |
+| **assurance** (`review`, `certification`, `notapplicable`) | what a person answers for: recurring reviews with their due date, certificates you hold with their expiry, controls out of scope with a reason; a statement passes only with owner and proof, and a control resting on statements alone reads `pass (statements only)` | any |
 
 Frameworks mapped: Cyber Essentials, ISO 27001 and GDPR (`judged audit --framework ce|iso27001|gdpr`). The control list is typed from memory and marked
 unreviewed: this is evidence, not a certification.
@@ -325,6 +326,29 @@ No options.
 | `paths` | list | empty | folders searched for symlinks and hardlinks |
 | `exclude` | list | empty | globs to skip |
 | `max_files` | int | 200000 | limit on files examined |
+
+### `source ID` line
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `url` | str | shipped for the built-in ids | what is downloaded (plain GET) |
+| `match` | str | shipped for the built-in ids | regular expression; what it finds identifies the version; empty = the whole download |
+| `seen` | str | write it on the line | the marker you read; a different one is a warning |
+| `name` | str | the id | title in the report |
+
+### `review NAME`, `certification NAME YYYY-MM-DD`, `notapplicable FRAMEWORK CONTROL` lines
+
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `months` | int | 12 | `review`: how long one review counts |
+| `last` | date | write it on the line | `review`: the day it was last done; missing = never done (fail) |
+| `owner` | str | write it on the line | who answers for it; missing is a warning, and an exclusion without it is ignored |
+| `proof` | str | write it on the line | `review`, `certification`: URL, ticket id or file (an absolute or `~` path must exist); missing is a warning |
+| `maps` | maps | empty | `review`, `certification`: controls it is evidence for, e.g. `ce:updates,iso27001:A.8.8`; an unknown id is a warning |
+| `number` | str | empty | `certification`: certificate number |
+| `issuer` | str | empty | `certification`: who issued it |
+| `scope` | str | empty | `certification`: what it covers |
+| `reason` | str | write it on the line | `notapplicable`: why the control does not apply |
 
 ### `contract NAME YYYY-MM-DD` line
 

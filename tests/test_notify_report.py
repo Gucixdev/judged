@@ -89,7 +89,7 @@ def test_apprise_door_attaches_the_file_and_other_cases(tmp_path):
 def test_audit_notify_end_to_end_exit_codes(tmp_path, monkeypatch):
     exe, log = fake_notts(tmp_path)
     cfg = tmp_path / "j.conf"
-    cfg.write_text(conf.template() + f"flatpak enabled=0\nnotify notts={exe}\ncheck always-ok cmd=\"true\" maps=ce:updates\n")
+    cfg.write_text(conf.template() + f"flatpak enabled=0\nfeeds enabled=0\nnotify notts={exe}\ncheck always-ok cmd=\"true\" maps=ce:updates\n")
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
     env = {**os.environ, "XDG_STATE_HOME": str(tmp_path / "state"), "PYTHONPATH": str(Path(__file__).parent.parent)}
     r = subprocess.run([sys.executable, "-m", "judged", "audit", "-c", str(cfg), "--notify"], capture_output=True, text=True, env=env, timeout=250)
@@ -97,7 +97,7 @@ def test_audit_notify_end_to_end_exit_codes(tmp_path, monkeypatch):
     assert "sent:" in r.stdout and (tmp_path / "state/judged/reports/raport.md").is_file()
     assert got["argv"][got["argv"].index("--attach") + 1] == str(tmp_path / "state/judged/reports/raport.md")
     bad = tmp_path / "j2.conf"
-    bad.write_text(conf.template() + "flatpak enabled=0\nnotify notts=/nonexistent/notts via=notts\ncheck always-ok cmd=\"true\" maps=ce:updates\n")
+    bad.write_text(conf.template() + "flatpak enabled=0\nfeeds enabled=0\nnotify notts=/nonexistent/notts via=notts\ncheck always-ok cmd=\"true\" maps=ce:updates\n")
     r2 = subprocess.run([sys.executable, "-m", "judged", "audit", "-c", str(bad), "--notify"], capture_output=True, text=True, env=env, timeout=250)
     assert "NOT SENT" in r2.stderr and "not on PATH" in r2.stderr
 

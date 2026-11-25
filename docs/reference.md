@@ -191,6 +191,32 @@ Three results: the newest backup is not older than `max_age_hours`; the newest b
 
 A link that cannot be followed for permission is `unknown`, never "broken" and never "fine". **judged only reports.** It never repairs, replaces or deletes a link: fixing is the job of a tool that is allowed to change things (a separate tool; such a tool may call judged, never the other way round).
 
+## Watching the official texts
+
+judged cannot turn a law or a scheme document into checks, and does not pretend to. It watches where they are published and says when
+something changed since a person read it. The built-in `source` lines are in `catalog.conf`: for GDPR, NIS2, DORA and the Cyber
+Resilience Act it asks EUR-Lex which acts amend them; for Cyber Essentials it reads the file name of the requirements document on the
+NCSC page and the change history of the GOV.UK scheme overview; for Poland, which acts the Sejm database links to the data protection
+act. Every result carries a short marker. After reading the source, write `source eu-nis2 seen=MARKER` in your config: it passes until
+the marker changes. Add your own with `source ID url=... match=...`; leave one out with `feeds skip=ID`. Downloads are cached for
+`max_age_days`. `check` and `run` send one alert per new marker (the first sight is only remembered, unless it already differs from
+your `seen=`), so a change reaches you at most `max_age_days` plus one pass after it is published. An old copy is `warn`, none at all is `unknown`, and a pattern that finds nothing is `unknown`, never "unchanged".
+
+Not seen: corrigenda, guidance from authorities, national implementations other than the one listed, UK acts, paid standards (ISO).
+
+## Reviews, certifications and the statement of applicability
+
+Many controls cannot be measured: a risk assessment, training, an access review. `review NAME months=12 last=DATE owner= proof= maps=`
+records when it was done; `certification NAME EXPIRES number= issuer= scope= owner= proof= maps=` records a certificate you hold. Both
+fail once their date has passed (a review without `last=` was never done), warn inside the longest alert band or without owner or proof,
+and their dates alert through `check` and `run` like any expiry. A control whose evidence is only such statements reads
+`pass (statements only)`; one failing measurement still fails it. `notapplicable FRAMEWORK CONTROL owner= reason=` takes a control out of scope; it
+never hides a finding mapped to that control.
+
+`judged audit --framework ce --soa` prints, per control, whether it applies, its status and what proves it (measured or statement), then
+what is still open before an audit. judged does not read the proof, only checks that a local proof file exists. It issues no certificate:
+a certification body does, and its assessor decides what is enough.
+
 ## Contracts and notice periods
 
 `contract "Hosting" 2027-03-31 type=supplier notice_days=90 auto_renews=1 term_months=12 cost=24000 currency=EUR owner=anna`

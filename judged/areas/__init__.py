@@ -5,6 +5,9 @@
     SPEC  = {"mything": ((), {"paths": "list"}, "section")}     # the config lines it understands (same form as conf.SPEC); optional
     DEFAULTS = {"mything": {"paths": []}}; DOC = {"mything": "one line for the template"}   # every SPEC key needs a default (a test checks)
     def run(cfg, ctx): return [Result(...), ...]                # cfg = the loaded config, ctx = Ctx below
+    def items(cfg, today): return [core.Item(...), ...]         # optional: dates that `check` and `run` alert on
+    def news(cfg, ctx, last): return [statement.Alert(...), ...]  # optional: other alerts from `check`/`run`; `last` = key -> value
+                                                                # kept from the previous pass
 
 Nothing else changes: not `audit()`, not `conf.py`. An area that raises becomes ONE `unknown` result that says so, and the other
 areas still run: a broken check must never hide the rest, and never look like a pass."""
@@ -46,6 +49,15 @@ def docs() -> dict:
     for m in discover():
         out.update(getattr(m, "DOC", {}))
     return out
+
+
+def items(cfg: dict, today: date) -> list:
+    """Every dated item the areas know of."""
+    return [i for m in discover() if hasattr(m, "items") for i in m.items(cfg, today)]
+
+
+def news(cfg: dict, ctx: Ctx, last: dict) -> list:
+    return [n for m in discover() if hasattr(m, "news") for n in m.news(cfg, ctx, last)]
 
 
 def run_all(cfg: dict, ctx: Ctx) -> list:

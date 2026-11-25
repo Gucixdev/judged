@@ -103,11 +103,16 @@ def test_size_limit(monkeypatch):
     assert feeds.fetch_bytes("https://example.invalid/") == b"x" * 10
 
 
+@pytest.fixture
+def lists_only(monkeypatch):
+    monkeypatch.setattr(feeds_area, "sources", lambda cfg: [])     # the watched texts have their own tests
+
+
 def test_discover_finds_kev():
     assert "kev" in [f.NAME for f in feeds.discover()]
 
 
-def test_area_results_and_shared(tmp_path, monkeypatch):
+def test_area_results_and_shared(tmp_path, monkeypatch, lists_only):
     monkeypatch.setattr(feeds, "fetch_bytes", lambda u: KEV_RAW)
     monkeypatch.setattr(feeds, "discover", lambda: [kev])
     ctx = Ctx(TODAY, tmp_path)
@@ -118,7 +123,7 @@ def test_area_results_and_shared(tmp_path, monkeypatch):
     assert feeds_area.run({"feeds": {**cfg["feeds"], "enabled": False}}, Ctx(TODAY, tmp_path)) == []
 
 
-def test_area_offline_without_cache_is_unknown(tmp_path, monkeypatch):
+def test_area_offline_without_cache_is_unknown(tmp_path, monkeypatch, lists_only):
     monkeypatch.setattr(feeds, "fetch_bytes", boom)
     monkeypatch.setattr(feeds, "discover", lambda: [kev])
     ctx = Ctx(TODAY, tmp_path)
@@ -126,7 +131,7 @@ def test_area_offline_without_cache_is_unknown(tmp_path, monkeypatch):
     assert r.status == "unknown" and ctx.shared["feeds"]["kev"] is None
 
 
-def test_area_stale_is_warn(tmp_path, monkeypatch):
+def test_area_stale_is_warn(tmp_path, monkeypatch, lists_only):
     monkeypatch.setattr(feeds, "discover", lambda: [kev])
     (tmp_path / "feeds").mkdir()
     (tmp_path / "feeds" / "kev.json").write_text(json.dumps({"fetched": "2026-01-01", "url": "x", "data": {}}))

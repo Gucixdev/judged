@@ -4,6 +4,18 @@ Open work only, in the order it will be done. When something is finished it is n
 
 What each item costs when missed, and the order by money: [costs.md](costs.md). Online public lists (CISA KEV, EPSS, endoflife.date, SPDX licences, Certificate Transparency) cached as JSON under `<state>/feeds/`: first one (KEV) is written, wiring into deps and the rest are below.
 
+**For bigger companies** (order of impact, same as in the README; the details are in the sections below)
+- [ ] Windows and macOS host checks (see Windows and macOS)
+- [ ] One view of many machines: collect the `audit` reports of a fleet, group by owner, show what got worse
+- [ ] SOC 2, more ISO 27001 Annex A ids, NIS2 Art. 21, DORA (see Inspirations)
+- [ ] Cloud accounts, access reviews, offboarding, MFA evidence
+- [ ] Days open per finding, `judged incident start TIME`, supplier questionnaire (see Inspirations)
+
+**Certification and official texts**
+- [ ] Cyber Essentials requirement by requirement from the NCSC document (v3.3, April 2026) instead of five coarse controls: each requirement mapped to a check or a `review`; check the document's reuse terms first (it says Crown Copyright, no licence found yet)
+- [ ] More watched sources: UK acts (no stable marker found yet in the legislation.gov.uk feed), authority guidance (EDPB, UODO), EUR-Lex corrigenda, the Polish NIS2 act
+- [ ] SPDX licence list, endoflife.date (both answered on 2026-11-25): wire into the checks (listed under Online feeds)
+
 **Expiry and renewal**
 - [ ] Built-in ACME backend through the `acme` library (RFC 8555, HTTP-01 and DNS-01); Pebble is already in `./e2e`, so only the code is missing
 - [ ] DNSSEC chain validation and DS/DNSKEY expiry (RRSIG validity)
@@ -130,12 +142,10 @@ i bazy danych rowniez XD w pelni skan czy wszystko gra audyty papierkowe etc XD
 - [ ] ASD Essential Eight as a framework (`--framework e8`): the eight strategies with maturity level 1 checks; maturity per strategy = highest level whose checks all pass, overall = lowest; ASD outcome names mapped to judged statuses; text typed from the ASD maturity model, `unverified` until read (e8mate)
 - [ ] Essential Eight gaps on Linux: allowlisting state (fapolicyd, AppArmor or SELinux enforcing), patch age in days after a fix exists, backup copy stored apart from the machine and not writable by normal accounts, age limit tied to a stated recovery point, GitHub 2FA for the account and organisation members as the first MFA evidence (e8mate)
 - [ ] Device checks missing next to the existing host audit: screen lock timeout (GNOME, KDE, sway, i3), time sync (chrony, systemd-timesyncd), password policy (`PASS_MAX_DAYS`, pam_pwquality), `/etc/shadow` permissions, unattended updates switched on (probo device agent, security-controls-metrics)
-- [ ] `review` line for measures with no machine evidence, dated and recurring: `review NAME every=12m last=YYYY-MM-DD owner=NAME maps=...`; due and overdue use the same alert bands as expiry. First entries: risk assessment, internal audit, management review, disaster recovery test, penetration test, security training, access review, policy review, offboarding checklist (probo, compAI)
-- [ ] Evidence attached to a control: a file path or URL with a date and an owner, listed in the audit output under the control it supports (probo)
-- [ ] Statement of Applicability output: per control, applies or not, reason, and the check or `review` that proves it (probo, cairn)
+- [ ] A starter list of `review` lines to copy: risk assessment, internal audit, management review, disaster recovery test, penetration test, security training, access review, policy review, offboarding checklist, mapped to the right controls (probo, compAI)
 - [ ] Supplier questionnaire: weighted questions, must-have answers that block approval, answers file per supplier, score and decision in `paperwork`; questions mapped to ISO 27001 A.5.19 to A.5.23 and GDPR Art. 28 (security-controls-metrics)
 - [ ] `judged incident start TIME`: prints every statutory deadline from the catalog (GDPR 72 h, NIS2 24 h, 72 h, one month, DORA) as clock times; a duty with no numeric limit prints "without undue delay" and no invented hours (cairn)
-- [ ] `certification` line for certificates you hold (ISO 27001, Cyber Essentials, SOC 2 report) with number, issuer, scope, expiry and the one it replaces; expiry alerts like any date (cairn)
+- [ ] `certification ... replaces=`: the certificate this one takes over from (cairn)
 - [ ] CA trust stores: system bundle and each certifi copy of the listed Python environments checked against the Mozilla CCADB removed-roots report (feed under `feeds/`) and for age of the bundle (trustwatch, Naveen-Sai-Ganadi)
 - [ ] Maintainer count next to each npm and PyPI dependency result, limited by `max_lookups`; a single publisher is a warning (trustwatch, Dovakyr, no licence: idea only, nothing copied)
 - [ ] Export of all dated items (expiry, paperwork, `review`) as one CSV or iCalendar file (expiryradar)
