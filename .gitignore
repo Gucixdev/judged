@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+.pytest_cache/
+graphify-out/
+.env
+.env.*
+!.env.example
+id_rsa
+id_ed25519
+secrets.json
+*.pem
+*.key

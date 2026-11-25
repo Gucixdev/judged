@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# e2e - build a clean Debian image and run the whole tool in it with NO network:
+# the test suite, then a fixture world (TLS server, GPG key, leaky git repo, lockfile) judged must get right.
+set -eu
+cd "$(dirname "$0")"
+export TMPDIR="${TMPDIR:-/var/tmp}"
+podman build -q -t judged-e2e -f tests/e2e/Containerfile . >/dev/null
+exec podman run --rm --network none judged-e2e

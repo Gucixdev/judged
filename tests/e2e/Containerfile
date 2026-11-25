@@ -1,0 +1,14 @@
+# A clean machine that is not the author's: Debian, Python 3.13, none of the host's tools or keys.
+FROM docker.io/library/python:3.13-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      git openssl gnupg bind9-dnsutils openssh-client curl ca-certificates procps \
+    && rm -rf /var/lib/apt/lists/*
+# Pebble: the ACME test server of the Letsencrypt project (real RFC 8555 protocol, real challenge), and certbot as the client
+COPY --from=ghcr.io/letsencrypt/pebble:latest /app /usr/local/bin/pebble
+COPY --from=ghcr.io/letsencrypt/pebble:latest /test /pebble/test
+RUN pip install --no-cache-dir certbot
+WORKDIR /judged
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+CMD ["bash", "tests/e2e/scenario"]

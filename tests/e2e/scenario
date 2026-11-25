@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# Runs INSIDE the container, no network. Builds a small world, points judged at it, checks the answers.
+set -eu
+cd /judged
+W=/tmp/world; mkdir -p $W/repos && cd $W
+step() { printf '\n== %s\n' "$*"; }
+day() { python3 -c "import datetime as d,sys; print(d.date.today()+d.timedelta(days=int(sys.argv[1])))" "$1"; }
+
+step "1/7 unit tests on this machine ($(python3 -V))"
+(cd /judged && python3 -m pytest -q tests --ignore=tests/e2e | tail -2)
+
+step "2/7 a CA, a 5-day certificate served by a real openssl process, trusted by the system store"
+openssl req -x509 -newkey rsa:2048 -nodes -keyout ca.key -out ca.crt -days 30 -subj "/CN=e2e CA" \
+  -addext "basicConstraints=critical,CA:TRUE" -addext "keyUsage=critical,keyCertSign,cRLSign" 2>/dev/null
+cat > issue <<'ISSUE'
+#!/usr/bin/env bash
+# usage: issue DAYS   (stands in for an ACME client: a new certificate from the CA, written over the old one)
+set -eu; cd /tmp/world
+openssl req -newkey rsa:2048 -nodes -keyout srv.key -out srv.csr -subj "/CN=www.e2e.test" 2>/dev/null
+printf 'subjectAltName=DNS:www.e2e.test\n' > ext
+openssl x509 -req -in srv.csr -CA ca.crt -CAkey ca.key -CAcreateserial -days "${1:-90}" -extfile ext -out srv.crt 2>/dev/null
+ISSUE
+cat > reload <<'RELOAD'
+#!/usr/bin/env bash
+# stands in for `systemctl reload`: restart the TLS server so it reads the new certificate
+cd /tmp/world; [ -f s.pid ] && kill "$(cat s.pid)" 2>/dev/null || true; sleep 0.3
+chain=(); [ -s srv.chain ] && chain=(-cert_chain srv.chain)
+openssl s_server -accept 8443 -cert srv.crt -key srv.key "${chain[@]}" -www -quiet >/dev/null 2>&1 &
+echo $! > s.pid; sleep 0.5
+RELOAD
+cat > acme-issue <<'ACME'
+#!/usr/bin/env bash
+# the real thing: certbot asks Pebble (an ACME server) for a certificate, HTTP-01 challenge on port 5002
+set -eu; cd /tmp/world
+export REQUESTS_CA_BUNDLE=/pebble/test/certs/pebble.minica.pem
+certbot certonly --non-interactive --agree-tos --register-unsafely-without-email --standalone --http-01-port 5002 \
+  --server https://localhost:14000/dir -d www.e2e.test --cert-name www --force-renewal --preferred-profile "${PROFILE:-default}" \
+  --config-dir le --work-dir le/work --logs-dir le/logs >/tmp/world/certbot.log 2>&1 || { tail -20 /tmp/world/certbot.log >&2; exit 1; }
+cp le/live/www/cert.pem srv.crt; cp le/live/www/privkey.pem srv.key; cp le/live/www/chain.pem srv.chain
+ACME
+chmod +x issue reload acme-issue
+cp ca.crt /usr/local/share/ca-certificates/e2e-ca.crt && update-ca-certificates >/dev/null 2>&1
+./issue 5 && ./reload
+
+step "2b/7 an ACME server (Pebble) that issues for www.e2e.test; its root joins the trust store"
+echo "127.0.0.1 www.e2e.test" >> /etc/hosts
+(cd /pebble && PEBBLE_VA_NOSLEEP=1 pebble -config test/config/pebble-config.json >$W/pebble.log 2>&1 &)
+for i in $(seq 40); do curl -sk https://localhost:14000/dir >/dev/null 2>&1 && break; sleep 0.25; done
+curl -sk https://localhost:15000/roots/0 > /usr/local/share/ca-certificates/pebble-root.crt
+update-ca-certificates >/dev/null 2>&1
+
+step "3/7 a GPG key that expires in 10 days"
+export GNUPGHOME=$W/gnupg; mkdir -m 700 $GNUPGHOME
+gpg --batch --pinentry-mode loopback --passphrase '' --quick-gen-key "ci <ci@example.test>" rsa3072 sign 10d 2>/dev/null
+
+step "4/7 two repos: one leaky (secret-named file, token in a commit), one clean; a lockfile"
+TOKEN="gh""p_Ab3dE6gH9jK2mN5pQ8sT1vW4yZ7bC0eF3hJ6"          # built at runtime: the repo never contains a literal key
+git init -q repos/leaky && cd repos/leaky
+printf 'token %s\n' "$TOKEN" > notes.md
+printf '[[package]]\nname = "time"\nversion = "0.1.43"\nsource = "registry+https://github.com/rust-lang/crates.io-index"\n' > Cargo.lock
+git add . && git -c user.email=e@e.test -c user.name=e2e commit -qm "add notes"
+printf 'A=1\n' > .env                                      # secret-named, not ignored, would be added
+cd $W && git init -q repos/clean && cd repos/clean
+printf '.env\nid_rsa\nsecrets.json\n*.pem\n*.key\n' > .gitignore; printf 'hello\n' > README.md
+git add . && git -c user.email=e@e.test -c user.name=e2e commit -qm init; cd $W
+
+step "5/7 the config (one file)"
+cat > judged.conf <<CONF
+notify lead_days=30,14,7,1
+tls www.e2e.test port=8443 name=e2e-tls
+gpg homedir=$GNUPGHOME
+date "e2e licence" $(day 3)
+licence "e2e seats" $(day 400) cost=100 currency=EUR
+domain example.test
+company regions=EU,PL mail_domains=example.test
+obligation ce-cert last_done=$(day -300)
+secrets repos=$W/repos/* history=yes extra_terms=internal-codename
+deps projects=$W/repos/*
+renew www.e2e.test port=8443 cmd="$W/acme-issue" reload="$W/reload" when_days=21
+CONF
+export XDG_STATE_HOME=$W/state
+
+step "6/7 judged, offline"
+cd /judged
+python3 -m judged check --dry-run -c $W/judged.conf > $W/check.out 2> $W/check.err || true
+python3 -m judged licences -c $W/judged.conf > $W/licences.out
+python3 -m judged obligations -c $W/judged.conf > $W/obligations.out
+python3 -m judged audit --json -c $W/judged.conf > $W/audit.json 2> $W/audit.err || true
+python3 -m judged renew --dry-run -c $W/judged.conf > $W/renew-dry.out || true
+python3 -m judged renew -c $W/judged.conf > $W/renew.out || true
+python3 -m judged renew -c $W/judged.conf > $W/renew-again.out || true
+# a 6-day certificate (Pebble's "shortlived" profile) with when_days=21 is always due: judged must say so
+PROFILE=shortlived $W/acme-issue && $W/reload
+python3 -m judged renew -c $W/judged.conf > $W/renew-short.out || true
+echo | openssl s_client -connect localhost:8443 -servername www.e2e.test 2>/dev/null | openssl x509 -noout -issuer -enddate > $W/served.txt
+for f in renew-dry renew renew-again; do echo "-- $f:"; cat $W/$f.out; done; cat $W/served.txt
+TOKEN="$TOKEN" python3 tests/e2e/assertions.py $W
+
+step "7/7 done"

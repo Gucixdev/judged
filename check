@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# check - tests, Lean proofs, and the code held to the AMPL optimum.
+# usage: ./check [instances]   (default 200)
+set -eu
+cd "$(dirname "$0")"
+.venv/bin/python -m pytest -q tests | tail -1
+"${LEAN:-$HOME/.elan/bin/lean}" lean4/Bands.lean && echo "lean Bands ok"
+"${LEAN:-$HOME/.elan/bin/lean}" lean4/Window.lean && echo "lean Window ok"
+"${AMPL_PY:-$HOME/.local/share/ampl/bin/python}" ampl/window.py "${1:-200}" | tail -3
