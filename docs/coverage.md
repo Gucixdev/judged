@@ -32,7 +32,18 @@ visible. The option tables below are generated from the code (a test fails when 
 | **custom checks** (`check` line) | your own command, mapped to controls | any |
 | **assurance** (`review`, `certification`, `notapplicable`) | what a person answers for: recurring reviews with their due date, certificates you hold with their expiry, controls out of scope with a reason; a statement passes only with owner and proof, and a control resting on statements alone reads `pass (statements only)` | any |
 
-Frameworks mapped: Cyber Essentials, ISO 27001 and GDPR (`judged audit --framework ce|iso27001|gdpr`). The control list is typed from memory and marked
+Frameworks mapped: Cyber Essentials, ISO 27001 and GDPR (`judged audit --framework ce|iso27001|gdpr`). Cyber Essentials is listed requirement by requirement (31 lines, judged's own wording of NCSC v3.3, April 2026, not reviewed by a person or an assessor); a check names a requirement only if its result bears on it:
+
+| Requirement | Checks that can speak against it |
+|---|---|
+| `fw-every-device`, `fw-untrusted-networks` | host firewall service |
+| `cfg-software` | listening services, unused Flatpak runtimes |
+| `upd-14-days` | pending OS and Flatpak updates, dependency and container image vulnerabilities, image age, CISA known-exploited, waivers. None of them counts the 14 days yet |
+| `acc-guessing` | SSH server lets people in with passwords |
+| `acc-privileges` | extra uid 0 accounts, sudo rules without a password |
+| the other 24 | none: a statement only |
+
+No malware requirement has a check: for the Linux machines judged reads, NCSC lists application allow listing, not anti-malware software, so a ClamAV result is not Cyber Essentials evidence. Backups, disk encryption, logging, website TLS and secrets in repos are not requirements there and name none. The ISO 27001 and GDPR lists are typed from memory. A control list is marked
 unreviewed: this is evidence, not a certification.
 
 ## 2. Plug-in folders
@@ -208,13 +219,15 @@ No options.
 | Option | Type | Default | Meaning |
 |---|---|---|---|
 | `cmd` | argv | write it on the line | your command; exit 0 = pass, 1 = fail, `warn_exit` = warn, anything else, a timeout or a missing program = unknown |
-| `maps` | maps | write it on the line | controls the result counts as evidence for, e.g. `ce:firewalls,iso27001:A.8.20` |
+| `maps` | maps | write it on the line | controls the result counts as evidence for, e.g. `ce:fw-every-device,iso27001:A.8.20` |
 | `warn_exit` | int | write it on the line | exit code that means warn (default 2) |
 | `timeout` | int | write it on the line | seconds the command may run |
 
 ### `framework ID NAME` line
 
-No options.
+| Option | Type | Default | Meaning |
+|---|---|---|---|
+| `confirm` | bool | no | a control of this framework passes only with a passing `review` or `certification` among its evidence; measurements alone leave it `manual` (set for `ce`) |
 
 ### `control FRAMEWORK ID TITLE` line
 
@@ -344,7 +357,7 @@ No options.
 | `last` | date | write it on the line | `review`: the day it was last done; missing = never done (fail) |
 | `owner` | str | write it on the line | who answers for it; missing is a warning, and an exclusion without it is ignored |
 | `proof` | str | write it on the line | `review`, `certification`: URL, ticket id or file (an absolute or `~` path must exist); missing is a warning |
-| `maps` | maps | empty | `review`, `certification`: controls it is evidence for, e.g. `ce:updates,iso27001:A.8.8`; an unknown id is a warning |
+| `maps` | maps | empty | `review`, `certification`: controls it is evidence for, e.g. `ce:upd-14-days,iso27001:A.8.8`; an unknown id is a warning |
 | `number` | str | empty | `certification`: certificate number |
 | `issuer` | str | empty | `certification`: who issued it |
 | `scope` | str | empty | `certification`: what it covers |

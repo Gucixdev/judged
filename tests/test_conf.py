@@ -41,7 +41,12 @@ def test_comments_continuation_and_merge():
 
 def test_catalog_matches_what_the_toml_files_held():
     fw = controls.load_frameworks()
-    assert set(fw) == {"ce", "gdpr", "iso27001"} and fw["ce"]["controls"]["firewalls"] == "Firewalls"
+    assert set(fw) == {"ce", "gdpr", "iso27001"} and len(fw["ce"]["controls"]) == 31
+    assert fw["ce"]["confirm"] is True and "confirm" not in fw["gdpr"] and "confirm" not in fw["iso27001"]
+    # a config that adds its own control to ce must not switch the confirm rule off
+    own = conf.parse("framework ce 'Cyber Essentials'\ncontrol ce my-extra 'Mine'")
+    merged = conf.merge(conf.catalog(), own)["frameworks"]["ce"]
+    assert merged["confirm"] is True and merged["controls"]["my-extra"] == "Mine" and len(merged["controls"]) == 32
     assert fw["iso27001"]["controls"]["A.5.17"] == "Authentication information"
     cat = obligations.catalog()
     assert len(cat) == 7 and {o["kind"] for o in cat} == {"periodic", "event"}

@@ -8,7 +8,7 @@ import re
 from types import SimpleNamespace
 
 from .. import conf, feeds
-from ..controls import M_UPDATES
+from ..controls import M_VULN
 from ..statement import Alert, Result
 
 NAME, ORDER = "feeds", 5
@@ -96,5 +96,5 @@ def run(cfg, ctx):
             continue
         data, state, sentence = feeds.load(feed, ctx.state, ctx.today, f.get("max_age_days", 7), f.get("online", True))
         shared[feed.NAME] = data
-        out.append(Result(f"feeds.{feed.NAME}", f"public list: {feed.DOC}", LEVEL[state], sentence, M_UPDATES))
+        out.append(Result(f"feeds.{feed.NAME}", f"public list: {feed.DOC}", LEVEL[state], sentence, M_VULN))
     return out + [_watch(e, f, ctx) for e in _watched(cfg)]

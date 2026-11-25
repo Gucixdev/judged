@@ -36,7 +36,7 @@ SPEC = {
                                         "min_interval_hours": "float", "port": "int", "cafile": "str", "homedir": "str", "extend_by": "str", "timeout": "int"}, "renew"),
     "include":    ((("path", "str"),), {}, "include"),
     "check":      ((("name", "str"),), {"cmd": "argv", "maps": "maps", "warn_exit": "int", "timeout": "int"}, "check"),
-    "framework":  ((("id", "str"), ("name", "str")), {}, "framework"),
+    "framework":  ((("id", "str"), ("name", "str")), {"confirm": "bool"}, "framework"),
     "control":    ((("framework", "str"), ("id", "str"), ("title", "str")), {}, "control"),
     "duty":       ((("id", "str"),), {"region": "list", "framework": "str", "title": "str", "cadence_days": "int",
                                       "deadline": "str", "verify": "str", "reviewed": "date"}, "duty"),
@@ -133,6 +133,19 @@ def template() -> str:
     return "\n".join(out) + "\n"
 
 
+def reviews(frameworks: dict, only: str | None = None) -> str:
+    """A `review` line per control of the frameworks that need a person's statement (or of the one asked for), to fill in."""
+    out = ["# One statement per requirement, in judged's own words; the official text decides. For each: do the check, then set last= to",
+           "# that day and fill owner= and proof=. Without last= a review fails as never done. For a requirement that does not apply,",
+           "# replace its line with: notapplicable FRAMEWORK ID owner=.. reason=\"..\""]
+    for key, fw in frameworks.items():
+        if key == only if only else fw.get("confirm"):
+            out.append(f"\n# --- {fw['name']} ---")
+            for cid, title in fw["controls"].items():
+                out += [f"# {title}", f"review \"{key} {cid}\" months=12 owner= proof= maps={key}:{cid}"]
+    return "\n".join(out) + "\n"
+
+
 def load_strict(path: Path) -> dict:
     return require_complete(load(path), Path(path).name)
 
@@ -165,7 +178,7 @@ def value(kind: str, raw: str):
             return [int(x) for x in raw.split(",") if x]
         if kind == "argv":
             return shlex.split(raw)
-        if kind == "maps":      # ce:updates,iso27001:A.8.8  ->  {"ce": ["updates"], "iso27001": ["A.8.8"]}
+        if kind == "maps":      # ce:upd-14-days,iso27001:A.8.8  ->  {"ce": ["upd-14-days"], "iso27001": ["A.8.8"]}
             out = {}
             for pair in [x for x in raw.split(",") if x]:
                 fw, sep, cid = pair.partition(":")
@@ -236,7 +249,7 @@ def parse(text: str, name: str = "config") -> dict:
         elif dest in ("obligation", "renew"):
             cfg[dest].append(rec)
         elif dest == "framework":
-            cfg["frameworks"].setdefault(rec["id"], {"controls": {}})["name"] = rec["name"]
+            cfg["frameworks"].setdefault(rec["id"], {"controls": {}}).update({k: v for k, v in rec.items() if k != "id"})
         elif dest == "control":
             fw = cfg["frameworks"].setdefault(rec["framework"], {"controls": {}})
             fw["controls"][rec["id"]] = rec["title"]
@@ -254,7 +267,8 @@ def merge(base: dict, extra: dict) -> dict:
         elif k == "frameworks":
             for fid, f in v.items():
                 dst = base["frameworks"].setdefault(fid, {"controls": {}})
-                dst["name"] = f.get("name", dst.get("name", fid))
+                dst.update({k: x for k, x in f.items() if k != "controls"})
+                dst.setdefault("name", fid)
                 dst["controls"].update(f["controls"])
         else:
             base.setdefault(k, {}).update(v)

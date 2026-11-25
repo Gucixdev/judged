@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 from . import inits, pkgmgrs
-from .controls import M_ACCESS, M_CONFIG, M_FIREWALL, M_MALWARE, M_UPDATES, Result
+from .controls import M_CONFIG, M_HOST_FIREWALL, M_MALWARE, M_PASSWORD_LOGIN, M_PRIVILEGES, M_SERVICES, M_UPDATES, Result
 
 
 def run(cmd: list, timeout: int = 20) -> tuple:
@@ -31,7 +31,7 @@ def service(units, title: str, ident: str, maps: dict, none_up: str) -> Result:
 
 
 def firewall() -> Result:
-    return service(("ufw", "firewalld", "nftables", "iptables"), "Host firewall", "host.firewall", M_FIREWALL,
+    return service(("ufw", "firewalld", "nftables", "iptables"), "Host firewall", "host.firewall", M_HOST_FIREWALL,
                    "no ufw/firewalld/nftables service active (a ruleset loaded another way is not detected; needs root to list)")
 
 
@@ -57,11 +57,11 @@ def parse_sshd(text: str, read=lambda p: Path(p).read_text()) -> dict:
 def ssh() -> Result:
     p = Path("/etc/ssh/sshd_config")
     if not p.exists():
-        return Result("host.ssh", "SSH server", "na", "no sshd_config: no SSH server installed", M_ACCESS)
+        return Result("host.ssh", "SSH server", "na", "no sshd_config: no SSH server installed", M_PASSWORD_LOGIN)
     try:
         c = parse_sshd(p.read_text())
     except OSError as e:
-        return Result("host.ssh", "SSH server", "unknown", f"cannot read sshd_config: {e}", M_ACCESS)
+        return Result("host.ssh", "SSH server", "unknown", f"cannot read sshd_config: {e}", M_PASSWORD_LOGIN)
     root, pw = c.get("permitrootlogin", "prohibit-password"), c.get("passwordauthentication", "yes")
     bad = []
     if root == "yes":
@@ -69,7 +69,7 @@ def ssh() -> Result:
     if pw == "yes":
         bad.append("password authentication on")
     return Result("host.ssh", "SSH server", "warn" if bad else "pass",
-                  "; ".join(bad) or f"PermitRootLogin={root}, PasswordAuthentication={pw}", M_ACCESS)
+                  "; ".join(bad) or f"PermitRootLogin={root}, PasswordAuthentication={pw}", M_PASSWORD_LOGIN)
 
 
 def root_encrypted(tree: dict, under_crypt: bool = False) -> bool | None:
@@ -116,7 +116,7 @@ def updates() -> Result:
 def listening(accept: tuple = ()) -> Result:
     rc, out = run(["ss", "-H", "-tln"])
     if rc != 0:
-        return Result("host.ports", "Listening services", "unknown", "ss not available", M_FIREWALL)
+        return Result("host.ports", "Listening services", "unknown", "ss not available", M_SERVICES)
     exposed = []
     for l in out.splitlines():
         f = l.split()
@@ -124,14 +124,14 @@ def listening(accept: tuple = ()) -> Result:
             exposed.append(f[3])
     return Result("host.ports", "Listening services", "warn" if exposed else "pass",
                   ("reachable beyond loopback: " + ", ".join(sorted(set(exposed))[:10])) if exposed
-                  else "only loopback" + (f" and accepted ports {', '.join(accept)}" if accept else ""), M_FIREWALL)
+                  else "only loopback" + (f" and accepted ports {', '.join(accept)}" if accept else ""), M_SERVICES)
 
 
 def extra_uid0() -> Result:
     users = [l.split(":")[0] for l in Path("/etc/passwd").read_text().splitlines()
              if l.count(":") >= 3 and l.split(":")[2] == "0" and not l.startswith("root:")]
     return Result("host.uid0", "Accounts with uid 0", "fail" if users else "pass",
-                  ("extra root-equivalent accounts: " + ", ".join(users)) if users else "only root", M_ACCESS)
+                  ("extra root-equivalent accounts: " + ", ".join(users)) if users else "only root", M_PRIVILEGES)
 
 
 def malware() -> Result:

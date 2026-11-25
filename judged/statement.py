@@ -26,12 +26,16 @@ class Result:
     attested: bool = False  # a person's statement, not something judged measured
 
 
-def control_status(results: list) -> str:
-    """The worst statement about a control; 'manual' when there is none (never a pass), 'n/a' when a person took it out of scope."""
+def control_status(results: list, confirm: bool = False) -> str:
+    """The worst statement about a control; 'manual' when there is none (never a pass), 'n/a' when a person took it out of scope.
+    `confirm`: measurements alone cannot pass this control, a person's passing statement has to be among them, else 'manual'."""
     counted = [r for r in results if r.status != Status.NA]
     if not counted:
         return "n/a" if any(r.attested for r in results) else "manual"
-    return max((r.status for r in counted), key=SEVERITY.__getitem__)
+    worst = max((r.status for r in counted), key=SEVERITY.__getitem__)
+    if confirm and worst == Status.PASS and not any(r.attested for r in counted):
+        return "manual"
+    return worst
 
 
 def shown(status: str, results: list) -> str:

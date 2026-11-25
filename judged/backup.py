@@ -6,7 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 from . import backups
 from .controls import Result
 
-M_BACKUP = {"iso27001": ["A.8.13"], "gdpr": ["art32"], "ce": ["secure-config"]}
+M_BACKUP = {"iso27001": ["A.8.13"], "gdpr": ["art32"]}
 
 
 def _run(cmd, timeout=60):

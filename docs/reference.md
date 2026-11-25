@@ -213,6 +213,12 @@ and their dates alert through `check` and `run` like any expiry. A control whose
 `pass (statements only)`; one failing measurement still fails it. `notapplicable FRAMEWORK CONTROL owner= reason=` takes a control out of scope; it
 never hides a finding mapped to that control.
 
+Cyber Essentials has one control per requirement and `confirm=yes`: a requirement covers every device and service in scope while judged
+measures one machine, so a measurement can fail it and a pass also needs your statement. `judged config reviews` prints a `review` line
+per requirement with its text above it (`--framework iso27001` does the same for another list). Save it to a file, `include` that file
+in your config, then set `last=`, `owner=` and `proof=` as you go through it; until then each line fails as never done. A requirement
+that does not apply (`mal-allowlist` when you use anti-malware software on Windows or macOS) takes `notapplicable` instead.
+
 `judged audit --framework ce --soa` prints, per control, whether it applies, its status and what proves it (measured or statement), then
 what is still open before an audit. judged does not read the proof, only checks that a local proof file exists. It issues no certificate:
 a certification body does, and its assessor decides what is enough.

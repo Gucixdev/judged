@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .controls import Result
 
-M_LICENCE = {"iso27001": ["A.5.32"], "ce": ["secure-config"]}      # A.5.32 = intellectual property rights (unverified)
+M_LICENCE = {"iso27001": ["A.5.32"]}      # A.5.32 = intellectual property rights (unverified)
 RANK = {"permissive": 0, "weak-copyleft": 1, "strong-copyleft": 2, "restricted": 3, "unknown": 4}
 # restricted = you may not use it freely in a product: non-commercial, no-derivatives, source-available, proprietary.
 KEYWORDS = [   # first match wins: restricted terms beat any family name in the same string, AGPL and LGPL come before GPL

@@ -9,7 +9,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from .controls import M_CONFIG, M_UPDATES, Result
+from .controls import M_CONFIG, M_UNUSED, M_UPDATES, Result
 
 # findings: key -> (severity, text)
 SENSITIVE_PATHS = (".ssh", ".gnupg", ".aws", ".kube", ".password-store", ".config/gcloud", ".docker")
@@ -165,11 +165,11 @@ def flatpak_check(accept: list | None = None, ignore: list | None = None, run=su
                               ("signature check off for: " + ", ".join(sorted(set(bad)))) if bad else "every remote verifies signatures", M_CONFIG))
     upd = _run(["flatpak", "remote-ls", "--updates", "--columns=application"], run)
     if upd is None:
-        results.append(Result("flatpak.updates", "Flatpak updates", "unknown", "could not ask the remote (offline?)", {"ce": ["updates"], "iso27001": ["A.8.8"], "gdpr": ["art32"]}))
+        results.append(Result("flatpak.updates", "Flatpak updates", "unknown", "could not ask the remote (offline?)", M_UPDATES))
     else:
         n = len([x for x in upd.splitlines() if x.strip()])
         results.append(Result("flatpak.updates", "Flatpak updates", "warn" if n else "pass",
-                              f"{n} update(s) waiting" if n else "up to date", {"ce": ["updates"], "iso27001": ["A.8.8"], "gdpr": ["art32"]}))
+                              f"{n} update(s) waiting" if n else "up to date", M_UPDATES))
     return results
 
 
@@ -219,7 +219,7 @@ def flatpak_leftovers(var_app: Path | None = None, run=subprocess.run) -> list:
         out.append(Result("flatpak.leftover-data", "Flatpak data of removed apps", "pass", "no data folder of a removed app", M_CONFIG))
     rt = _run(["flatpak", "list", "--runtime", "--columns=application,branch,size"], run)
     if rt is None:
-        out.append(Result("flatpak.runtimes", "Flatpak unused runtimes", "unknown", "could not list runtimes", M_CONFIG))
+        out.append(Result("flatpak.runtimes", "Flatpak unused runtimes", "unknown", "could not list runtimes", M_UNUSED))
         return out
     bases = {r[0] for r in used}
     stale = []
@@ -231,7 +231,7 @@ def flatpak_leftovers(var_app: Path | None = None, run=subprocess.run) -> list:
         out.append(Result("flatpak.runtimes", "Flatpak unused runtimes", "warn",
                           f"{len(stale)} runtime version{'' if len(stale) == 1 else 's'} that no installed app uses directly ({sum(s for *_, s in stale) / 1000:.1f} GB): "
                           + ", ".join(f"{a}//{b}" for a, b, _ in stale)
-                          + ". Candidates only (another runtime may still need one): `flatpak remove --unused` lists what Flatpak itself would remove", M_UPDATES))
+                          + ". Candidates only (another runtime may still need one): `flatpak remove --unused` lists what Flatpak itself would remove", M_UNUSED))
     else:
-        out.append(Result("flatpak.runtimes", "Flatpak unused runtimes", "pass", "every base runtime version is used by an installed app", M_UPDATES))
+        out.append(Result("flatpak.runtimes", "Flatpak unused runtimes", "pass", "every base runtime version is used by an installed app", M_UNUSED))
     return out

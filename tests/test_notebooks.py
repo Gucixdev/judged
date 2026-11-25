@@ -112,9 +112,11 @@ def test_the_percentage_says_whose_it_is_and_nothing_judged_lacks_is_sold(monkey
     assert "Windows 10" not in (NB / "costs.ipynb").read_text() + (NB / "costdata.json").read_text()
 
 
-def test_why_judged_five_areas_are_really_mapped_in_the_code():
+def test_every_requirement_a_check_names_is_in_the_catalog():
     mapped = {c for name in dir(controls) if name.startswith("M_") for c in getattr(controls, name).get("ce", [])}
-    assert {"firewalls", "secure-config", "user-access", "malware", "updates"} <= mapped
+    assert mapped and mapped <= set(controls.load_frameworks()["ce"]["controls"])
+    # what the notebook may claim: checks bear on these four areas, and on no malware requirement (see M_MALWARE)
+    assert {c.split("-")[0] for c in mapped} == {"fw", "cfg", "upd", "acc"}
 
 
 def test_notebook_is_valid_and_has_no_stored_output():

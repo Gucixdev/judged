@@ -27,11 +27,11 @@ def test_missing_program_and_timeout_are_unknown():
 
 def test_check_line_and_include(tmp_path):
     (tmp_path / "rules").mkdir()
-    (tmp_path / "rules" / "backup.rules").write_text('check "Backup is recent" cmd="test -d /" maps=ce:updates,iso27001:A.8.13 warn_exit=3\n'
+    (tmp_path / "rules" / "backup.rules").write_text('check "Backup is recent" cmd="test -d /" maps=ce:upd-14-days,iso27001:A.8.13 warn_exit=3\n'
                                                       'control ce my-extra "My extra control"\n')
     (tmp_path / "judged.conf").write_text("include rules/*.rules\ngpg\n")
     cfg = conf.load(tmp_path / "judged.conf")
-    assert cfg["checks"][0] == {"name": "Backup is recent", "cmd": ["test", "-d", "/"], "maps": {"ce": ["updates"], "iso27001": ["A.8.13"]}, "warn_exit": 3}
+    assert cfg["checks"][0] == {"name": "Backup is recent", "cmd": ["test", "-d", "/"], "maps": {"ce": ["upd-14-days"], "iso27001": ["A.8.13"]}, "warn_exit": 3}
     assert cfg["frameworks"]["ce"]["controls"]["my-extra"] == "My extra control"
     assert cfg["item"] == [{"kind": "gpg"}]
 

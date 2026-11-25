@@ -9,18 +9,18 @@ repairs, deletes or restores anything. Python 3.13; [Apprise](https://github.com
     .venv/bin/python -m judged config template > judged.conf     # every option, with its default
     .venv/bin/python -m judged -c judged.conf audit --framework ce
 
-Real output on a laptop with a fresh template config (trimmed to two rows; the full table has one row per control):
+Real output on a laptop with a fresh template config (trimmed to two of 31 rows, one requirement each):
 
     _Report as of 2026-11-25._
 
     ## Cyber Essentials [UNREVIEWED control list]
 
-    1 pass, 3 warn, 1 fail
+    3 warn, 1 unknown, 27 manual
 
     | Control | Status | Evidence |
     |---|---|---|
-    | firewalls Firewalls | pass | Host firewall: ufw is active (systemd); Listening services: only loopback |
-    | malware Malware protection | warn | Anti-malware: no ClamAV service active (other products are not detected) (systemd) |
+    | fw-every-device Firewalls: every device in scope is behind a correctly configured firewall, its own or a network device | manual | Host firewall: ufw is active (systemd) |
+    | acc-guessing Access: passwords are protected from guessing by at least one of MFA, growing delays with at most 10 tries in 5 minutes, or lock after at most 10 failures | warn | SSH server: password authentication on |
 
     _`pass (statements only)` rests on what people stated, with owner and proof; nothing was measured. This report is not a certificate._
 
@@ -64,9 +64,12 @@ watched text changes; a failed delivery is tried again. Secret values are never 
 ## Certification
 
 judged measures what a machine can, records what people did, lists what is open (`audit --framework ce --soa`) and alerts
-before reviews and certificates run out. It issues no certificate: a certification body does (for Cyber Essentials,
+before reviews and certificates run out. A Cyber Essentials requirement covers every device in scope and judged measures one,
+so a measurement can fail it but a pass needs your statement; `judged config reviews` prints one `review` line per
+requirement to fill in. It issues no certificate: a certification body does (for Cyber Essentials,
 [licensed by IASME](https://iasme.co.uk/articles/what-is-the-role-of-certification-bodies-when-certifying-to-cyber-essentials/)).
-The control lists are short and unreviewed, so nothing open does not mean you will pass. A changed legal text does not
+Cyber Essentials is 31 requirement lines in judged's own words (NCSC v3.3), ISO 27001 and GDPR are short lists, and no person or
+assessor has reviewed any of them, so nothing open does not mean you will pass. A changed legal text does not
 become a new check by itself: a person reads it and updates the controls.
 
 ## For bigger companies: planned, not built
@@ -92,7 +95,7 @@ own past misses, each with proof.
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-440 tests, mostly against fake command output; newer modules were also mutation-tested. `tests/e2e/` needs podman or docker;
+442 tests, mostly against fake command output; newer modules were also mutation-tested. `tests/e2e/` needs podman or docker;
 a few tests skip without `$JUDGED_TEST_DATA`. Host audits are Linux only, BSD is untested, and restic, borg, dinit, OpenRC,
 runit, xbps, apt, dnf and rootful Docker were checked against documented formats, not real runs. The control catalog is
 typed from memory. Scanning this repository reports its own test fixtures. Finished work: [docs/done.md](docs/done.md).

@@ -90,7 +90,7 @@ def test_statement_of_applicability_lists_proof_and_what_is_open():
     assert "| 2 Two | yes | pass (statements only) | review Risk (statement, pass) |" in text
     assert "| 3 Three | no | n/a | does not apply: no code (decided by anna) |" in text
     assert "| 5 Five | yes | manual | nothing yet |" in text
-    assert "Open before an audit: failing: 4; no evidence: 5." in text and "certification body" in text
+    assert "Open before an audit: failing: 4; needs a person: 5." in text and "certification body" in text
     assert "2 pass, 1 fail, 1 manual, 1 n/a" in text
     assert "nothing that judged knows of" in controls.soa({"f": {"name": "F", "controls": {"1": "One"}}}, res, today=T)
 
@@ -100,3 +100,17 @@ def test_the_report_and_its_json_keep_a_statement_apart_from_a_measurement():
     rs = [statement.Result("a", "Said", "pass", "e", attested=True), statement.Result("b", "Measured", "pass", "e")]
     assert "## Fine (2)\n\nMeasured, Said (statement)\n" in report.build(rs, today=date(2026, 1, 1))
     assert [x.get("attested") for x in json.loads(report.dump(rs))] == [True, None]
+
+
+def test_the_printed_review_list_has_one_line_per_requirement_and_passes_only_when_filled_in():
+    ce = conf.catalog()["frameworks"]["ce"]["controls"]
+    text = conf.reviews(conf.catalog()["frameworks"])
+    cfg = conf.parse(text)
+    assert [e["maps"] for e in cfg["item"]] == [{"ce": [cid]} for cid in ce]            # only frameworks that need statements
+    assert {r.status for r in run(text)} == {"fail"}                                     # nothing was done yet
+    results = run(text.replace("months=12 owner= proof=", f"months=12 last={T} owner=anna proof=TICKET-1"))
+    assert {r.status for r in results} == {"pass"}
+    rows = controls.assemble("ce", conf.catalog()["frameworks"]["ce"], results)
+    assert {st for _, _, st, _ in rows} == {"pass"}
+    assert "maps=iso27001:A.5.15" in conf.reviews(conf.catalog()["frameworks"], "iso27001")
+    assert "maps=ce:" not in conf.reviews(conf.catalog()["frameworks"], "iso27001")

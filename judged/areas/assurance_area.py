@@ -1,7 +1,7 @@
 """What no machine check can prove, as dated statements a person answers for:
 
     review "Risk assessment" months=12 last=2026-03-01 owner=anna proof=~/audit/risk.pdf maps=iso27001:A.5.15
-    certification "Cyber Essentials" 2027-04-30 number=IASME-123 issuer="Body Ltd" scope="whole company" owner=anna proof=URL maps=ce:firewalls
+    certification "Cyber Essentials" 2027-04-30 number=IASME-123 issuer="Body Ltd" scope="whole company" owner=anna proof=URL maps=iso27001:A.5.15
     notapplicable iso27001 A.8.28 owner=anna reason="we write no software"
 
 A statement passes only with an owner and a proof (a URL, a ticket id, or a file; an absolute or ~ path must exist). It counts as

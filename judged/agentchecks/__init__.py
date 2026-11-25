@@ -17,7 +17,7 @@ from pathlib import Path
 
 from ..controls import Result
 
-M_AGENTS = {"ce": ["secure-config", "user-access"], "iso27001": ["A.8.9", "A.8.2"], "gdpr": ["art32"]}
+M_AGENTS = {"iso27001": ["A.8.9", "A.8.2"], "gdpr": ["art32"]}
 
 
 class Env:

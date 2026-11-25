@@ -10,7 +10,7 @@ from pathlib import Path
 
 from .controls import M_CONFIG, Result
 
-M_INTEGRITY = {"ce": ["secure-config"], "iso27001": ["A.8.9", "A.8.16"], "gdpr": ["art32"]}
+M_INTEGRITY = {"iso27001": ["A.8.9", "A.8.16"], "gdpr": ["art32"]}
 
 
 def scan(paths, exclude=(), max_filesize_mb=100, max_files=200000) -> tuple:

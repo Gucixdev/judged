@@ -12,7 +12,9 @@ What each item costs when missed, and the order by money: [costs.md](costs.md). 
 - [ ] Days open per finding, `judged incident start TIME`, supplier questionnaire (see Inspirations)
 
 **Certification and official texts**
-- [ ] Cyber Essentials requirement by requirement from the NCSC document (v3.3, April 2026) instead of five coarse controls: each requirement mapped to a check or a `review`; check the document's reuse terms first (it says Crown Copyright, no licence found yet)
+- [ ] Cyber Essentials: a person (or an assessor) compares the 31 lines in `catalog.conf` with the NCSC text; then `reviewed` for framework lists, so the UNREVIEWED mark can go away (a `framework` line has no such key yet)
+- [ ] Go through the ISO 27001 and GDPR maps the same way, one check at a time (today even the image format check counts as GDPR art32)
+- [ ] More Cyber Essentials evidence, each only if it can be measured honestly: firewall default policy for inbound, automatic updates switched on, auto-login and screen lock, guess limit on sign-in (PAM faillock), application allow listing on Linux (fapolicyd or similar)
 - [ ] More watched sources: UK acts (no stable marker found yet in the legislation.gov.uk feed), authority guidance (EDPB, UODO), EUR-Lex corrigenda, the Polish NIS2 act
 - [ ] SPDX licence list, endoflife.date (both answered on 2026-11-25): wire into the checks (listed under Online feeds)
 

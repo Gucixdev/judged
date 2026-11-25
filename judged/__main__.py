@@ -227,7 +227,7 @@ def sbom_cmd(a) -> int:
 def main() -> int:
     ap = argparse.ArgumentParser(prog="judged")
     ap.add_argument("cmd", choices=["check", "run", "audit", "renew", "obligations", "licences", "report", "config", "diff", "sbom", "integrity", "links"])
-    ap.add_argument("what", nargs="?", choices=["template", "check", "init", "accept", "show"], help="config: template = print a complete config with every option, check = validate the file; integrity: init = make the baseline, accept = replace it after review, show = what changed")
+    ap.add_argument("what", nargs="?", choices=["template", "check", "reviews", "init", "accept", "show"], help="config: template = print a complete config with every option, check = validate the file, reviews = a review line per requirement to fill in; integrity: init = make the baseline, accept = replace it after review, show = what changed")
     ap.add_argument("-c", "--config", type=Path, default=xdg("XDG_CONFIG_HOME", ".config") / "judged" / "judged.conf")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--every", type=float, default=6.0, help="hours between passes (run)")
@@ -251,7 +251,10 @@ def main() -> int:
             load(a.config)
             print(f"{a.config}: complete, every option is stated")
             return 0
-        ap.error("config needs `template` or `check`")
+        if a.what == "reviews":
+            print(conf.reviews(conf.catalog()["frameworks"], a.framework), end="")
+            return 0
+        ap.error("config needs `template`, `check` or `reviews`")
     if a.cmd == "renew":
         return renew_pass(a.config, a.dry_run, a.every)
     if a.cmd == "obligations":

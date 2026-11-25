@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .controls import Result
 
-M_SECRETS = {"ce": ["secure-config"], "iso27001": ["A.5.17"], "gdpr": ["art32", "art5-1f"]}
+M_SECRETS = {"iso27001": ["A.5.17"], "gdpr": ["art32", "art5-1f"]}
 
 SHAPES = {
     "github-token": r"(?<![A-Za-z0-9])gh[pousr]_[A-Za-z0-9]{30,}",

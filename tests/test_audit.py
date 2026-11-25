@@ -47,10 +47,36 @@ def test_tls_evaluation():
 
 def test_control_rollup_and_manual():
     R = controls.Result
-    maps = {"ce": ["firewalls"]}
-    rs = [R("a", "a", "pass", "", maps), R("b", "b", "warn", "", maps), R("c", "c", "na", "", {"ce": ["malware"]})]
-    fw = controls.load_frameworks()["ce"]
-    rows = {cid: st for cid, _, st, _ in controls.assemble("ce", fw, rs)}
-    assert rows["firewalls"] == "warn"
-    assert rows["malware"] == "manual"          # only 'na' evidence: a person must supply it
-    assert rows["user-access"] == "manual"      # nothing mapped at all
+    maps = {"iso27001": ["A.8.20"]}
+    rs = [R("a", "a", "pass", "", maps), R("b", "b", "warn", "", maps), R("c", "c", "na", "", {"iso27001": ["A.8.7"]})]
+    fw = controls.load_frameworks()["iso27001"]
+    rows = {cid: st for cid, _, st, _ in controls.assemble("iso27001", fw, rs)}
+    assert rows["A.8.20"] == "warn"
+    assert rows["A.8.7"] == "manual"            # only 'na' evidence: a person must supply it
+    assert rows["A.8.2"] == "manual"            # nothing mapped at all
+
+
+def test_a_cyber_essentials_requirement_never_passes_on_a_measurement_alone():
+    R, fw = controls.Result, controls.load_frameworks()["ce"]
+    maps = {"ce": ["fw-every-device"]}
+
+    def status(*results):
+        return next(st for cid, _, st, _ in controls.assemble("ce", fw, list(results)) if cid == "fw-every-device")
+
+    def measured(s):
+        return R("m", "m", s, "", maps)
+
+    def said(s):
+        return R("s", "s", s, "", maps, attested=True)
+
+    assert status(measured("pass")) == "manual"
+    assert status(measured("pass"), said("pass")) == "pass"
+    assert status(said("pass")) == "pass"
+    for bad in ("fail", "warn", "unknown"):
+        assert status(measured(bad), said("pass")) == bad       # a statement never hides what was measured
+    assert status(measured("pass"), said("warn")) == "warn"
+    assert status(measured("pass"), said("na")) == "manual"     # an exclusion is not a pass for what is still measured
+    report = controls.markdown({"ce": fw}, [measured("pass")])
+    assert "A measurement can fail a requirement" in report and "| manual | m: " in report
+
+

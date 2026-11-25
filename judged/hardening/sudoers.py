@@ -1,7 +1,7 @@
 """sudo rules that need no password or no authentication. /etc/sudoers is root-only: as an ordinary user this answers `unknown`."""
 import re
 
-from ..controls import M_ACCESS, Result
+from ..controls import M_PRIVILEGES, Result
 
 NAME, ORDER = "sudoers", 40
 
@@ -26,11 +26,11 @@ def check(cfg, env):
         names = [] if not _has(env, "/etc/sudoers.d") else [f"/etc/sudoers.d/{n}" for n in env.listdir("/etc/sudoers.d") if not n.endswith("~") and "." not in n]
         texts = {"/etc/sudoers": env.read("/etc/sudoers"), **{n: env.read(n) for n in names}}
     except PermissionError as e:
-        return [Result("hardening.sudoers", "sudo rules", "unknown", f"cannot read {e.filename}: only root can; run judged as root to check", M_ACCESS)]
+        return [Result("hardening.sudoers", "sudo rules", "unknown", f"cannot read {e.filename}: only root can; run judged as root to check", M_PRIVILEGES)]
     except FileNotFoundError:
-        return [Result("hardening.sudoers", "sudo rules", "na", "no /etc/sudoers: sudo not installed", M_ACCESS)]
+        return [Result("hardening.sudoers", "sudo rules", "na", "no /etc/sudoers: sudo not installed", M_PRIVILEGES)]
     except OSError as e:
-        return [Result("hardening.sudoers", "sudo rules", "unknown", f"cannot read sudoers: {e}", M_ACCESS)]
+        return [Result("hardening.sudoers", "sudo rules", "unknown", f"cannot read sudoers: {e}", M_PRIVILEGES)]
     nopass, noauth = [], []
     for f, text in texts.items():
         for r in rules(text):
@@ -42,7 +42,7 @@ def check(cfg, env):
     accept = cfg.get("sudoers_accept", [])
     unaccepted = [b for b in bad if not any(a in b for a in accept)]
     return [Result("hardening.sudoers", "sudo rules", "warn" if unaccepted else "pass",
-                   "; ".join(unaccepted[:6]) if unaccepted else f"{len(texts)} sudoers files read, no NOPASSWD or !authenticate" + (f" ({len(bad)} accepted)" if bad else ""), M_ACCESS)]
+                   "; ".join(unaccepted[:6]) if unaccepted else f"{len(texts)} sudoers files read, no NOPASSWD or !authenticate" + (f" ({len(bad)} accepted)" if bad else ""), M_PRIVILEGES)]
 
 
 def _has(env, path: str) -> bool:
