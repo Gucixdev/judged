@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Opens the costs notebook in the browser through Jupyter. No arguments.
+# Computes the costs notebook (charts, tables, out/costs.pdf) and opens it in the browser through Jupyter. No arguments.
+# NO_BROWSER=1: compute only.
 # Jupyter is not a dependency of judged: install it once with
-#   python3 -m venv "$H" && "$H/bin/pip" install notebook nbconvert
+#   python3 -m venv "$H" && "$H/bin/pip" install notebook nbconvert matplotlib
 # where H is ${JUDGED_NOTEBOOK_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/judged-notebook}.
 # The venv takes a few hundred MB: on a small root disk, set JUDGED_NOTEBOOK_HOME to a folder on another
 # disk (in your shell profile) before the install and before every run, and point TMPDIR and PIP_CACHE_DIR
@@ -15,8 +16,28 @@ if [ -z "${BROWSER:-}" ] && ! command -v firefox >/dev/null 2>&1 && command -v f
     export BROWSER="flatpak run org.mozilla.firefox %s"
 fi
 H="${JUDGED_NOTEBOOK_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/judged-notebook}"
+J=
 for j in "$H/bin/jupyter" "$(command -v jupyter)"; do
-    if [ -n "$j" ] && [ -x "$j" ]; then exec "$j" notebook --ServerApp.use_redirect_file=False costs.ipynb; fi
+    if [ -n "$j" ] && [ -x "$j" ]; then J=$j; break; fi
 done
-echo "Jupyter is not installed. See the header of $0 for the two commands." >&2
-exit 1
+if [ -z "$J" ]; then echo "Jupyter is not installed. See the header of $0 for the two commands." >&2; exit 1; fi
+
+# Work on a copy in out/ so your numbers and the results stay out of git. A newer notebook from the repo replaces the
+# copy; the old one is kept as costs.previous.ipynb.
+mkdir -p out || exit 1
+cp costdata.json out/
+new=$(sha256sum costs.ipynb | cut -d' ' -f1)
+if [ ! -f out/costs.ipynb ] || [ "$new" != "$(cat out/.source.sha256 2>/dev/null)" ]; then
+    if [ -f out/costs.ipynb ]; then
+        mv out/costs.ipynb out/costs.previous.ipynb
+        echo "The notebook changed: your old copy is out/costs.previous.ipynb (copy your MINE values over)."
+    fi
+    cp costs.ipynb out/costs.ipynb && echo "$new" > out/.source.sha256 || exit 1
+fi
+cd out || exit 1
+echo "Computing (downloads exchange rates and the source pages, up to a few minutes)..."
+"$J" nbconvert --to notebook --execute --allow-errors --inplace costs.ipynb \
+    || echo "Computing failed: the notebook opens without results; use Run -> Run All Cells." >&2
+[ -f costs.pdf ] && echo "PDF report: $PWD/costs.pdf"
+[ -z "${NO_BROWSER:-}" ] || exit 0
+exec "$J" notebook --ServerApp.use_redirect_file=False costs.ipynb

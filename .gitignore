@@ -10,3 +10,5 @@ id_ed25519
 secrets.json
 *.pem
 *.key
+notebooks/out/
+.ipynb_checkpoints/

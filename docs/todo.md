@@ -83,7 +83,6 @@ What each item costs when missed, and the order by money: [costs.md](costs.md). 
 - [ ] Cannot be verified on the development machine (Linux only): fakes with documented command output first, then a real run by someone with the machine, marked as such in done.md
 
 **Notebook** (Jupyter; optional, nothing in judged depends on it)
-- [ ] `notebooks/costs.ipynb` is written and its code runs offline in the tests; not yet opened in a real Jupyter (not installed on the development machine)
 - [ ] `notebooks/audit.ipynb`: read `judged audit --json` and show status per control with filters
 - [ ] A static `costs.html` twin that opens from a file manager without Jupyter (needs rates typed in or a CORS-enabled rate API; decide)
 

@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 NB = Path(__file__).resolve().parent.parent / "notebooks"
 
 
@@ -13,6 +15,20 @@ def run(src, **inject):
     ns = {}
     exec(compile(src, "notebook", "exec"), ns)
     return ns
+
+
+@pytest.fixture(autouse=True)
+def report_dir(tmp_path, monkeypatch):
+    monkeypatch.setenv("JUDGED_REPORT_DIR", str(tmp_path))   # the PDF must not land in the repo
+    monkeypatch.setenv("MPLBACKEND", "Agg")
+    return tmp_path
+
+
+def test_pdf_report_is_written_when_matplotlib_is_there(monkeypatch, report_dir):
+    pytest.importorskip("matplotlib")
+    monkeypatch.chdir(NB)
+    run(cells("costs.ipynb", lambda s: s.replace("OFFLINE = False", "OFFLINE = True")))
+    assert (report_dir / "costs.pdf").read_bytes().startswith(b"%PDF")
 
 
 def test_costs_notebook_runs_offline_and_estimates(capsys, monkeypatch):
