@@ -111,6 +111,17 @@ rust go python php java javascript typescript im wiecej jezykow pokryc tym lepie
 # containers 
 
 podman docker flatpak proxmox distrobox
+judged powinien ogarniac kryptografie czy komunikacja jest bezpieczna czy jest p2p czy jakiejs zabezpieczenia 
+czy nie sa wystawione na atak czy podsluch szyfrowanie stron internetowych jest zgodne nie jest przestarzale i zgodne z standardem 
+i bazy danych rowniez XD w pelni skan czy wszystko gra audyty papierkowe etc XD 
+
+
+
+
+
+
+
+
 
 
 **Inspirations (2026-11-25)** (from [inspirations.md](inspirations.md); matches for cairn, compAI, trustwatch and expiryradar are guesses, see there; AGPL sources are technique only, MIT sources may be copied with the notice)

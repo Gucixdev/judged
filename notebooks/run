@@ -7,7 +7,12 @@
 # disk (in your shell profile) before the install and before every run, and point TMPDIR and PIP_CACHE_DIR
 # there too (not at /tmp, which may be a RAM disk). This script finds the venv there, or jupyter on PATH.
 # Run it from nnn or a shell; the notebook reads costdata.json next to it.
+# Browser: $BROWSER if set, else firefox on PATH, else the Flatpak Firefox (org.mozilla.firefox) when installed.
 cd "$(dirname "$(readlink -f "$0")")" || exit 1
+if [ -z "${BROWSER:-}" ] && ! command -v firefox >/dev/null 2>&1 && command -v flatpak >/dev/null 2>&1 \
+    && flatpak info org.mozilla.firefox >/dev/null 2>&1; then
+    export BROWSER="flatpak run org.mozilla.firefox %s"
+fi
 H="${JUDGED_NOTEBOOK_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/judged-notebook}"
 for j in "$H/bin/jupyter" "$(command -v jupyter)"; do
     if [ -n "$j" ] && [ -x "$j" ]; then exec "$j" notebook costs.ipynb; fi
