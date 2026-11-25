@@ -77,3 +77,9 @@ Finished and checked, newest groups last. Each line says how it was checked.
 - [x] Report delivery: `audit --notify` sends a summary and the full report through notts or Apprise, exit 3 when not delivered (checked with a fake notts and with the real notts 0.1.0 against a local webhook; no real phone service contacted)
 - [x] Strict config: every option must be stated, `judged config template|check`, `enabled` switches for flatpak, containers, malware
 - [x] `judged diff` between saved reports with a regression exit code
+
+**`unknown` is not lost** (2026-11-25; each gap reproduced with a script first, then covered in `tests/test_unknown.py`)
+- [x] A crashed audit area or hardening audit: no control reads `pass` and every framework section names it. Before, a person's `review` line could read `pass` while the host area had crashed, and `--framework ce` did not show the crash
+- [x] A host check that raises is its own `unknown`; before, it took all host checks with it
+- [x] An `item` line or watched text that cannot be read twice in a row is an alert, once per outage; before, a failed item was one line on stderr and no alert, and a failing `gpg` gave an empty list
+- [x] One failed read no longer repeats an alert already sent (seen in a script: two identical messages after ok, blip, ok)

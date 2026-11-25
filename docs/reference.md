@@ -29,6 +29,13 @@ judged does not speak ACME. For each `[[renew]]` entry it reads the served certi
 certificate again: if it did not change, that is a failure and an alert, whatever the command's exit code said.
 Retries are spaced by `min_interval_hours` (default 6). `cafile` lets it check hosts behind a private CA.
 
+## When it cannot look
+
+An `item` line that cannot be read (host down, a certificate that no longer verifies, a failing `gpg`) is printed as
+`unknown: ...`, and so is a watched official text with no fresh copy for its alert. The first such pass is quiet, because it is
+often a network blip. The second sends `judged: cannot check ...`, once; after judged could look again, a new outage is sent
+again. What was already said about an item is remembered while it cannot be read. `check` still exits 0.
+
 ## Obligations by region
 
 `judged/catalog.conf` lists periodic obligations (Cyber Essentials certificate, ISO 27001 surveillance and
@@ -116,7 +123,9 @@ of it. judged asks for `--json` and quotes notts's own answer (`sent`, `suppress
 
 One file in `judged/areas/`, found automatically (`NAME`, `ORDER`, optional `SPEC` = the config lines it understands, and
 `run(cfg, ctx)` returning results). `audit()`, `conf.py` and the report do not change. An area that crashes becomes one `unknown`
-result and the other areas still run. The built-in areas (host, endpoints, secrets, sandboxes, malware, custom checks, software,
+result and the other areas still run. Nobody knows what the crashed part would have said, so in that report no control reads
+`pass` and every framework section names the crash. One host check that raises is its own `unknown` and the others still run.
+The built-in areas (host, endpoints, secrets, sandboxes, malware, custom checks, software,
 mail) are the examples; the audit output was compared result by result before and after the move: identical.
 
 ## Software bill of materials

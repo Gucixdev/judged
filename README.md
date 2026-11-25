@@ -51,7 +51,7 @@ Exit code 1 when something fails.
 - **Official texts:** GDPR, NIS2, DORA and CRA amendments (EUR-Lex), Cyber Essentials pages, the Polish data protection
   act. A change stays `warn` until a person has read it. Your own sources are one line each.
 
-One plug-in is one file, found automatically; one that crashes is one `unknown` result. All options:
+One plug-in is one file, found automatically; one that crashes is one `unknown` result, and then no control reads `pass`. All options:
 [docs/coverage.md](docs/coverage.md); how each check works: [docs/reference.md](docs/reference.md).
 
 ## Pass, warn, fail and alerts
@@ -95,7 +95,7 @@ own past misses, each with proof.
     .venv/bin/pip install pytest
     .venv/bin/python -m pytest -q tests --ignore=tests/e2e
 
-442 tests, mostly against fake command output; newer modules were also mutation-tested. `tests/e2e/` needs podman or docker;
+449 tests, mostly against fake command output; newer modules were also mutation-tested. `tests/e2e/` needs podman or docker;
 a few tests skip without `$JUDGED_TEST_DATA`. Host audits are Linux only, BSD is untested, and restic, borg, dinit, OpenRC,
 runit, xbps, apt, dnf and rootful Docker were checked against documented formats, not real runs. The control catalog is
 typed from memory. Scanning this repository reports its own test fixtures. Finished work: [docs/done.md](docs/done.md).

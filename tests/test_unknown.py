@@ -1,9 +1,9 @@
 """`unknown` must reach the reader: a check that crashes, a watch that cannot look. Neither may end up as pass or as silence."""
 import subprocess
-from datetime import date
+from datetime import date, datetime, timedelta, timezone
 
 from judged import __main__ as main
-from judged import areas, checks, conf, controls, hardening, host, net, statement
+from judged import areas, checks, conf, controls, core, hardening, host, net, statement
 
 CE = {"ce": controls.load_frameworks()["ce"]}
 
@@ -108,3 +108,13 @@ def test_a_watched_text_that_cannot_be_read_is_blind_too():
     assert (first.key, first.value, first.title) == ("blind:official text X", 1, "")
     assert statement.blind("official text X", "no copy", {first.key: 1}).title == "judged: cannot check official text X"
     assert statement.blind("official text X", "no copy", {first.key: 2}).title == ""
+
+
+def test_an_item_that_could_not_be_read_is_not_reported_twice_and_a_renewed_one_still_resets():
+    now = datetime(2026, 11, 25, tzinfo=timezone.utc)
+    soon, far = core.Item("tls", "a", now + timedelta(days=10)), core.Item("tls", "b", now + timedelta(days=90))
+    state = {"tls:a": 14, "tls:b": 7, "date:gone": 7}
+    _, new = core.due([far], state, [30, 14, 7, 1], now)          # a could not be read; b was renewed
+    assert core.remember(new, state, [far], {"tls"}) == {"tls:a": 14}
+    alerts, new = core.due([soon, far], {"tls:a": 14}, [30, 14, 7, 1], now)
+    assert alerts == [] and core.remember(new, state, [soon, far], set()) == {"tls:a": 14}

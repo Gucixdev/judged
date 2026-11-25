@@ -40,3 +40,11 @@ def due(items: list[Item], state: dict[str, int], lead_days: list[int], now: dat
         else:
             new[key] = prev
     return alerts, new
+
+
+def remember(new: dict, state: dict, items: list, kinds: set) -> dict:
+    """`kinds` could not all be looked at this pass. What was said about an item of such a kind that did not show up is kept, or
+    it would be said again when the item comes back. An item that did show up follows `due` as usual, so a renewal still resets it."""
+    seen = {f"{i.kind}:{i.name}" for i in items}
+    kept = {k: v for k, v in state.items() if k.split(":", 1)[0] in kinds and k not in seen}
+    return {**kept, **new}

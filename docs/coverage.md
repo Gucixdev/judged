@@ -3,7 +3,8 @@
 Everything listed here is written and tested. What is still open is in [todo.md](todo.md), what a miss costs in [costs.md](costs.md), and the long
 explanation of each check in [reference.md](reference.md). judged only reads and reports; it never repairs, deletes, restores or renews on its own.
 
-Every result is one of `pass`, `warn`, `fail`, `unknown` or `na`. A control with no evidence at all is `manual`, one taken out of scope by a named decision is `n/a`, and one that passes on people's statements alone reads `pass (statements only)`. Alerts go out from `check` and `run`: dates in their bands, and a watched official text that changed. `fail` is for what is certain,
+Every result is one of `pass`, `warn`, `fail`, `unknown` or `na`. A control with no evidence at all is `manual`, one taken out of scope by a named decision is `n/a`, and one that passes on people's statements alone reads `pass (statements only)`. Alerts go out from `check` and `run`: dates in their bands, a watched official text that changed, and something judged is meant to
+watch (a dated item or a watched text) that it could not look at two passes in a row, said once per outage. `fail` is for what is certain,
 `warn` for what depends on your intent, `unknown` when the check could not look. Nothing is hidden: an option that accepts a finding keeps it
 visible. The option tables below are generated from the code (a test fails when an option is missing from this file).
 
@@ -48,7 +49,8 @@ unreviewed: this is evidence, not a certification.
 
 ## 2. Plug-in folders
 
-One file per plug-in, found automatically; a plug-in that crashes becomes one `unknown` result and the rest still run.
+One file per plug-in, found automatically; a plug-in that crashes becomes one `unknown` result and the rest still run. What it
+would have said is lost, so in that report no control reads `pass` and each framework section names the crash.
 
 | Folder | Files today |
 |---|---|

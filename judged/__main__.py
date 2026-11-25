@@ -81,6 +81,7 @@ def once(cfg_path: Path, dry: bool) -> int:
         title = f"judged: {it.name} " + ("EXPIRED" if b < 0 else f"expires in {core.days_left(it, now):.0f} days")
         dated.append(statement.Alert(f"{it.kind}:{it.name}", b, title, f"{it.kind} {it.name} expires {it.expires:%Y-%m-%d} (band {b})"))
     new_state.update({k: v for k, v in state.items() if k.startswith("source:")})     # a source that is offline today is not forgotten
+    new_state = core.remember(new_state, state, items, {what.split()[0] for what, _ in unseen})
     dated += [statement.blind(what, why, state) for what, why in unseen]
     statement.deliver(dated + areas.news(cfg, areas.Ctx(now.date(), state_file.parent), state), new_state, state,
                       lambda title, body: notify.send(notify_urls(cfg), title, body), dry)
